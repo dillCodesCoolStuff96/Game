@@ -24,17 +24,23 @@ export function BonusTV({ room, teams, decks, run }) {
   const remaining = endsAt ? Math.max(0, Math.ceil((endsAt - now) / 1000)) : bonus.seconds
 
   // Show the next item the moment the host presses C/P; the server catches up.
-  const [local, setLocal] = useState({ index: 0, correct: 0 })
+  // A pass sends the item to the back of the line (same as bonus_mark).
+  const [local, setLocal] = useState({ index: 0, correct: 0, order: [] })
   const ahead = local.index > (bonus.index ?? 0)
   const index = ahead ? local.index : (bonus.index ?? 0)
   const correct = ahead ? local.correct : (bonus.correct ?? 0)
-  const outOfItems = bonus.order && index >= bonus.order.length
-  const item = deck && bonusItem(bonus, deck, index)
+  const order = (ahead ? local.order : bonus.order) ?? []
+  const outOfItems = bonus.order && index >= order.length
+  const item = deck && bonusItem({ ...bonus, order }, deck, index)
 
   function mark(isCorrect) {
     if (bonus.status !== 'playing' || outOfItems || remaining <= 0) return
     if (isCorrect) playBlip()
-    setLocal({ index: index + 1, correct: correct + (isCorrect ? 1 : 0) })
+    setLocal({
+      index: index + 1,
+      correct: correct + (isCorrect ? 1 : 0),
+      order: isCorrect ? order : [...order, order[index]],
+    })
     run(() => bonusMark(room.id, isCorrect))
   }
 
