@@ -240,6 +240,10 @@ export default function HostScreen({ code }) {
               <button type="button" className="secondary" onClick={actions.reveal}>
                 Reveal answer (A)
               </button>
+              {/* Leaves the question unplayed, e.g. after picking the wrong square. */}
+              <button type="button" className="secondary" onClick={actions.backToBoard}>
+                Back to board (B)
+              </button>
             </>
           )}
           {room.phase === 'answer' && (
