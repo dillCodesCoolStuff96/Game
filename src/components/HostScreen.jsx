@@ -73,10 +73,11 @@ export default function HostScreen({ code }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buzzes])
 
-  // The buzz being judged: the one on the clock, else the first still waiting.
+  // The buzz being judged: the team on the clock (until judged; Next team moves
+  // the clock on). With no clock yet, the first team still waiting.
   const onClock = timer.current && buzzes?.[timer.current.index]
-  const judgeIndex =
-    onClock && waiting(onClock) ? timer.current.index : (buzzes?.findIndex(waiting) ?? -1)
+  let judgeIndex = buzzes?.findIndex(waiting) ?? -1
+  if (onClock) judgeIndex = waiting(onClock) ? timer.current.index : -1
 
   // Next team in line after the one being timed (or the first, if nobody has
   // been timed yet), skipping buzzes that timed out or were judged.
@@ -107,12 +108,10 @@ export default function HostScreen({ code }) {
       timer.stop()
       run(() => judgeAnswer(buzzes[judgeIndex].id, true))
     },
+    // Penalty only; the host presses Next team to put the next team on the clock.
     wrong: () => {
       if (judgeIndex === -1) return
-      // The next team in line gets a turn straight away.
-      const next = nextAfter(judgeIndex)
-      if (next === -1) timer.stop()
-      else timer.start(next)
+      timer.stop()
       run(() => judgeAnswer(buzzes[judgeIndex].id, false))
     },
     reveal: () => {
@@ -124,8 +123,8 @@ export default function HostScreen({ code }) {
       run(() => backToBoard(room.id))
     },
     undo: () => run(() => undoLastScore(room.id)),
-    // Skip the team on the clock without a penalty (they may buzz again) and
-    // time the next team in line.
+    // Time the next team in line. If the team on the clock wasn't judged, they're
+    // skipped without a penalty (and may buzz again).
     timeNext: () => {
       const skipped = onClock && waiting(onClock) ? onClock : null
       if (nextIndex !== -1) timer.start(nextIndex)
