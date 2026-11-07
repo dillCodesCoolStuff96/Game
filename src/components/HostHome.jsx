@@ -45,7 +45,14 @@ export default function HostHome({ user }) {
                 <li key={room.code}>
                   <button type="button" onClick={() => navigate(`?host=${room.code}`)}>
                     <strong>{room.code}</strong>
-                    <span className="muted">{new Date(room.created_at).toLocaleString()}</span>
+                    <span className="muted">{new Date(room.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-link"
+                    onClick={() => navigate(`?admin=${room.code}`)}
+                  >
+                    Admin
                   </button>
                 </li>
               ))}

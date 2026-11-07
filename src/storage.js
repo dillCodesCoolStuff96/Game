@@ -236,3 +236,8 @@ export async function reopenQuestion(roomId, questionId) {
 export async function undoLastScore(roomId) {
   unwrap(await supabase.rpc('undo_last_score', { p_room_id: roomId }))
 }
+
+// Add (or with a negative number, take away) points for a team by hand.
+export async function adjustScore(teamId, points) {
+  unwrap(await supabase.rpc('adjust_score', { p_team_id: teamId, p_points: points }))
+}

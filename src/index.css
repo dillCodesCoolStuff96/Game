@@ -656,3 +656,68 @@ button:disabled {
 .question-view .buzz-order {
   text-align: left;
 }
+
+/* ---------- Score adjustment (TV sidebar) ---------- */
+
+.score-adjust {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.score-adjust button {
+  min-width: 28px;
+  height: 32px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  opacity: 0.5;
+}
+
+.score-adjust button:hover {
+  opacity: 1;
+  background: var(--surface);
+}
+
+.score-adjust button.team-score {
+  font-size: clamp(1.1rem, 1.6vw, 1.6rem);
+  font-weight: 800;
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* ---------- Host home & admin phone screen ---------- */
+
+.room-list li {
+  display: flex;
+  gap: 8px;
+}
+
+.room-list li > button:first-child {
+  flex: 1;
+}
+
+.room-list .admin-link {
+  width: auto;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.admin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.admin-answer {
+  font-size: clamp(2.5rem, 14vw, 5rem);
+  font-weight: 900;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
