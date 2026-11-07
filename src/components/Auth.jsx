@@ -21,7 +21,7 @@ export default function Auth() {
       ? await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/?host` },
         })
       : await supabase.auth.signInWithPassword({ email, password })
 
@@ -33,7 +33,7 @@ export default function Auth() {
       setNotice('Check your email for a confirmation link, then sign in.')
       setMode('signIn')
     }
-    // On success the auth listener in App switches to the game.
+    // On success the auth listener in App shows the host screen.
   }
 
   function toggleMode() {
@@ -44,8 +44,9 @@ export default function Auth() {
 
   return (
     <div className="screen">
-      <form onSubmit={handleSubmit}>
-        <h2>{isSignUp ? 'Create an account' : 'Sign in'}</h2>
+      <form className="card stack" onSubmit={handleSubmit}>
+        <h1>{isSignUp ? 'Create a host account' : 'Host sign in'}</h1>
+        <p className="muted">Players don't need an account — they join with the game code.</p>
 
         <input
           type="email"
@@ -68,10 +69,10 @@ export default function Auth() {
         {error && <p className="error">{error}</p>}
         {notice && <p>{notice}</p>}
 
-        <button type="submit" disabled={busy}>
+        <button type="submit" className="primary" disabled={busy}>
           {busy ? 'Please wait…' : isSignUp ? 'Create account' : 'Sign in'}
         </button>
-        <button type="button" onClick={toggleMode}>
+        <button type="button" className="link" onClick={toggleMode}>
           {isSignUp ? 'Already have an account? Sign in' : 'New here? Create an account'}
         </button>
       </form>

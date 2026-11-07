@@ -1,31 +1,419 @@
-/* Minimal base only — the game's real look gets designed later. */
+:root {
+  --bg: #0b1020;
+  --surface: #151b2e;
+  --surface-2: #1e2640;
+  --border: #2a3452;
+  --text: #f1f3f9;
+  --muted: #9aa3b8;
+  --accent: #f5c542;
+  --accent-text: #1a1400;
+  --danger: #f87171;
+  --radius: 14px;
+
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color-scheme: light dark;
+  background: var(--bg);
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.1rem;
 }
 
 /* 16px font stops iOS Safari from zooming in when an input is focused. */
 input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
   font-size: 16px;
 }
 
-.screen {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 24px 16px;
+input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
 }
 
-.screen form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.primary {
+  min-height: 50px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+.primary.big {
+  min-height: 64px;
+  padding: 0 36px;
+  font-size: 1.3rem;
+}
+
+.link {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 0.85rem;
 }
 
 .error {
-  color: crimson;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* ---------- Simple pages (join, sign in, host home) ---------- */
+
+.screen {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 32px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.code-input {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+}
+
+.host-link {
+  align-self: center;
+}
+
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.room-list button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.team-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--team);
+  border-radius: 10px;
+  background: var(--surface-2);
+  text-align: left;
+  font-size: 1.1rem;
+}
+
+/* ---------- TV (host) ---------- */
+
+.tv {
+  display: grid;
+  grid-template-columns: minmax(260px, 26vw) 1fr;
+  min-height: 100vh;
+}
+
+.tv-side {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 28px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.join {
+  text-align: center;
+}
+
+.join img {
+  width: 100%;
+  max-width: 260px;
+  border-radius: 10px;
+}
+
+.room-code {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.team-list > li:not(.muted) {
+  padding: 12px 14px;
+  border-left: 6px solid var(--team);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.team-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-name {
+  flex: 1;
+  min-width: 0;
+  font-size: clamp(1.1rem, 1.6vw, 1.6rem);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.team-score {
+  font-size: clamp(1.1rem, 1.6vw, 1.6rem);
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.remove {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  font-size: 1.3rem;
+  opacity: 0.4;
+}
+
+.remove:hover {
+  opacity: 1;
+}
+
+.tv-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 48px 32px;
+}
+
+.buzz-state {
+  font-size: clamp(2rem, 4.5vw, 4.5rem);
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.buzz-state.open {
+  color: var(--accent);
+}
+
+.buzz-order {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(100%, 900px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.buzz-order li {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 24px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border-left: 10px solid var(--team);
+  font-size: clamp(1.3rem, 2.4vw, 2.4rem);
+  animation: pop 0.25s ease-out;
+}
+
+.buzz-order li:first-child {
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--team);
+}
+
+.buzz-order .place {
+  font-weight: 900;
+  color: var(--team);
+}
+
+.buzz-order .who {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.buzz-order .who .muted {
+  font-size: 0.55em;
+}
+
+.buzz-order .gap {
+  font-size: 0.6em;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+.host-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ---------- Player phone ---------- */
+
+.player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  min-height: 100dvh;
+  padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.player-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border-left: 8px solid var(--team);
+}
+
+.buzz-button {
+  width: min(78vw, 360px);
+  aspect-ratio: 1;
+  margin-top: auto;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: clamp(2.5rem, 14vw, 4.5rem);
+  font-weight: 900;
+  box-shadow: inset 0 -10px 0 rgb(0 0 0 / 0.3);
+}
+
+.buzz-button.live {
+  background: var(--team);
+  color: #fff;
+  box-shadow:
+    inset 0 -10px 0 rgb(0 0 0 / 0.25),
+    0 0 40px color-mix(in srgb, var(--team) 60%, transparent);
+}
+
+.buzz-button.live:active {
+  transform: translateY(4px) scale(0.98);
+}
+
+.buzz-button.first {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.buzz-button:disabled {
+  opacity: 1;
+}
+
+.caption {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: auto;
+}
+
+@media (max-width: 700px) {
+  .tv {
+    grid-template-columns: 1fr;
+  }
 }
