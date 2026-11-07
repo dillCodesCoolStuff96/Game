@@ -2,6 +2,7 @@
 
 ## Build plan (party: Dec 19)
 - [x] 1. Room, teams and buzzer
+- [x] Answer timer after a buzz, with a time's-up alarm
 - [ ] 2. Board and scoring
 - [ ] 3. All-play answers from phones, host grading
 - [ ] 4. Name-that-song and spot-the-difference questions
@@ -10,3 +11,4 @@
 
 ## Later
 - [ ] Better buzzer sound — current one works but doesn't sound great
+- [ ] Maybe show the answer countdown on phones too

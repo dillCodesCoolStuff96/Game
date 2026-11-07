@@ -50,3 +50,15 @@ export function playBlip() {
   if (!ctx) return
   tone(ctx, { type: 'square', frequency: 330, start: ctx.currentTime, duration: 0.15, volume: 0.06 })
 }
+
+// Loud "time's up" alarm: three harsh two-tone bursts.
+export function playAlarm() {
+  const ctx = audio()
+  if (!ctx) return
+  const start = ctx.currentTime
+  for (let i = 0; i < 3; i++) {
+    const at = start + i * 0.35
+    tone(ctx, { type: 'square', frequency: 880, start: at, duration: 0.15, volume: 0.25 })
+    tone(ctx, { type: 'square', frequency: 660, start: at + 0.15, duration: 0.15, volume: 0.25 })
+  }
+}

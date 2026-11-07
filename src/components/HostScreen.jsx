@@ -4,9 +4,11 @@ import { navigate } from '../nav.js'
 import { playBlip, playBuzzer } from '../sounds.js'
 import { closeBuzzers, deleteTeam, openBuzzers } from '../storage.js'
 import { teamColor } from '../teamColors.js'
+import { useAnswerTimer } from '../useAnswerTimer.js'
 import { useRoom } from '../useRoom.js'
 
-// The TV view, driven from the host's PC. Space opens/closes the buzzers.
+// The TV view, driven from the host's PC.
+// Keys: Space opens/closes the buzzers, S stops the answer timer, N times the next team.
 export default function HostScreen({ code }) {
   const { status, state, error, refresh } = useRoom(code)
   const [qr, setQr] = useState('')
@@ -18,6 +20,7 @@ export default function HostScreen({ code }) {
 
   const room = state?.room
   const buzzes = state?.buzzes
+  const timer = useAnswerTimer(room?.buzz_round)
 
   // Buzz ids already heard; null until the first load, so opening the screen
   // mid-round doesn't replay old buzzes.
@@ -27,8 +30,12 @@ export default function HostScreen({ code }) {
     const fresh = heard.current ? buzzes.filter((b) => !heard.current.has(b.id)) : []
     heard.current = new Set(buzzes.map((b) => b.id))
     if (fresh.length === 0) return
-    if (fresh.some((b) => b.id === buzzes[0].id)) playBuzzer()
-    else playBlip()
+    if (fresh.some((b) => b.id === buzzes[0].id)) {
+      playBuzzer()
+      timer.start(0)
+    } else playBlip()
+    // Only new buzzes should trigger this, not timer re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buzzes])
 
   async function toggleBuzzers() {
@@ -38,11 +45,18 @@ export default function HostScreen({ code }) {
     refresh()
   }
 
+  // Next team in the buzz order (or the first, if nobody has been timed yet).
+  const nextIndex = timer.current ? timer.current.index + 1 : 0
+  const canTimeNext = Boolean(buzzes?.[nextIndex])
+
   useEffect(() => {
     function onKey(event) {
-      if (event.code !== 'Space' || event.target.closest?.('input, textarea')) return
+      if (event.target.closest?.('input, textarea')) return
+      if (event.code === 'Space') toggleBuzzers()
+      else if (event.code === 'KeyS') timer.stop()
+      else if (event.code === 'KeyN' && canTimeNext) timer.start(nextIndex)
+      else return
       event.preventDefault()
-      toggleBuzzers()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -115,14 +129,27 @@ export default function HostScreen({ code }) {
             const team = teams.find((t) => t.id === b.team_id)
             const player = players.find((p) => p.user_id === b.user_id)
             const gap = (new Date(b.buzzed_at).getTime() - firstTime) / 1000
+            const answering = timer.current?.index === i
             return (
-              <li key={b.id} style={{ '--team': teamColor(teams, b.team_id) }}>
+              <li
+                key={b.id}
+                className={answering ? `answering ${timer.current.status}` : ''}
+                style={{ '--team': teamColor(teams, b.team_id), '--progress': timer.progress }}
+              >
                 <span className="place">{i + 1}</span>
                 <span className="who">
                   <strong>{team?.name ?? 'Removed team'}</strong>
                   <span className="muted">{player?.name}</span>
                 </span>
-                <span className="gap muted">{i === 0 ? '' : `+${gap.toFixed(2)}s`}</span>
+                {answering ? (
+                  <span className="countdown">
+                    {timer.current.status === 'expired'
+                      ? "TIME'S UP"
+                      : Math.ceil(timer.remaining / 1000)}
+                  </span>
+                ) : (
+                  <span className="gap muted">{i === 0 ? '' : `+${gap.toFixed(2)}s`}</span>
+                )}
               </li>
             )
           })}
@@ -133,6 +160,26 @@ export default function HostScreen({ code }) {
             {room.buzz_open ? 'Close buzzers' : 'Open buzzers'}
           </button>
           <span className="muted small">or press Space</span>
+          {timer.current?.status === 'running' && (
+            <button type="button" className="secondary" onClick={timer.stop}>
+              Stop timer (S)
+            </button>
+          )}
+          {canTimeNext && (
+            <button type="button" className="secondary" onClick={() => timer.start(nextIndex)}>
+              {timer.current ? 'Next team' : 'Start timer'} (N)
+            </button>
+          )}
+          <span className="answer-time">
+            <span className="muted small">Answer time</span>
+            <button type="button" aria-label="Less time" onClick={() => timer.setSeconds(timer.seconds - 1)}>
+              −
+            </button>
+            <strong>{timer.seconds}s</strong>
+            <button type="button" aria-label="More time" onClick={() => timer.setSeconds(timer.seconds + 1)}>
+              +
+            </button>
+          </span>
           <button type="button" className="link" onClick={() => navigate('?host')}>
             ← Games
           </button>

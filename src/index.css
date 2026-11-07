@@ -417,3 +417,76 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Answer timer ---------- */
+
+.secondary {
+  min-height: 50px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-weight: 700;
+}
+
+.answer-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.answer-time button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-2);
+}
+
+.buzz-order li.answering {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Bar along the bottom that shrinks as time runs out. */
+.buzz-order li.answering::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 6px;
+  width: calc(var(--progress) * 100%);
+  background: var(--team);
+  transition: width 0.1s linear;
+}
+
+.countdown {
+  font-size: 1.6em;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.buzz-order li.stopped .countdown {
+  color: var(--muted);
+}
+
+.buzz-order li.expired {
+  background: #7f1d1d;
+  box-shadow: 0 0 0 3px var(--danger);
+  animation: shake 0.4s ease-in-out 2;
+}
+
+.buzz-order li.expired .countdown {
+  font-size: 1em;
+  color: #fff;
+}
+
+@keyframes shake {
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}
