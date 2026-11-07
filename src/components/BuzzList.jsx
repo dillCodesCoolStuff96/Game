@@ -11,7 +11,7 @@ export default function BuzzList({ state, timer, value }) {
         const team = teams.find((t) => t.id === b.team_id)
         const player = players.find((p) => p.user_id === b.user_id)
         const gap = (new Date(b.buzzed_at).getTime() - firstTime) / 1000
-        const answering = timer.current?.index === i && !b.result
+        const answering = timer.current?.index === i && !b.result && !b.expired
         // Place among buzzes that are still in line (timed-out ones don't count).
         const place = b.expired ? '–' : buzzes.slice(0, i + 1).filter((x) => !x.expired).length
 

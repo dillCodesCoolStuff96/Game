@@ -50,11 +50,9 @@ export default function HostScreen({ code }) {
   }, [board])
   const question = room?.current_question_id ? questions.get(room.current_question_id) : null
 
-  // Time ran out: the team's buzz is cancelled so they can buzz again.
-  const timer = useAnswerTimer(room?.buzz_round, (index) => {
-    const expired = buzzes?.[index]
-    if (expired) expireBuzz(expired.id).then(refresh)
-  })
+  // When time runs out the alarm plays and the team stays on the clock until
+  // the host picks Correct, Wrong or Next team.
+  const timer = useAnswerTimer(room?.buzz_round)
 
   // Buzz ids already heard; null until the first load, so opening the screen
   // mid-round doesn't replay old buzzes.
@@ -126,7 +124,14 @@ export default function HostScreen({ code }) {
       run(() => backToBoard(room.id))
     },
     undo: () => run(() => undoLastScore(room.id)),
-    timeNext: () => nextIndex !== -1 && timer.start(nextIndex),
+    // Skip the team on the clock without a penalty (they may buzz again) and
+    // time the next team in line.
+    timeNext: () => {
+      const skipped = onClock && waiting(onClock) ? onClock : null
+      if (nextIndex !== -1) timer.start(nextIndex)
+      else timer.stop()
+      if (skipped) run(() => expireBuzz(skipped.id))
+    },
   }
 
   useEffect(() => {
@@ -228,7 +233,7 @@ export default function HostScreen({ code }) {
                   Stop timer (S)
                 </button>
               )}
-              {nextIndex !== -1 && (
+              {(nextIndex !== -1 || (onClock && waiting(onClock))) && (
                 <button type="button" className="secondary" onClick={actions.timeNext}>
                   {timer.current ? 'Next team' : 'Start timer'} (N)
                 </button>
