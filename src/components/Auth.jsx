@@ -43,46 +43,36 @@ export default function Auth() {
   }
 
   return (
-    <div className="app auth">
-      <header className="app-header">
-        <h1>Game</h1>
-      </header>
-
-      <form className="card auth-form" onSubmit={handleSubmit}>
+    <div className="screen">
+      <form onSubmit={handleSubmit}>
         <h2>{isSignUp ? 'Create an account' : 'Sign in'}</h2>
 
-        <label className="field">
-          <span>Email</span>
-          <input
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-
-        <label className="field">
-          <span>Password</span>
-          <input
-            type="password"
-            autoComplete={isSignUp ? 'new-password' : 'current-password'}
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
+        <input
+          type="email"
+          placeholder="Email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          autoComplete={isSignUp ? 'new-password' : 'current-password'}
+          minLength={6}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
 
         {error && <p className="error">{error}</p>}
-        {notice && <p className="notice">{notice}</p>}
+        {notice && <p>{notice}</p>}
 
-        <button type="submit" className="primary" disabled={busy}>
+        <button type="submit" disabled={busy}>
           {busy ? 'Please wait…' : isSignUp ? 'Create account' : 'Sign in'}
         </button>
-
-        <button type="button" className="link-button" onClick={toggleMode}>
-          {isSignUp ? 'Already have an account? Sign in' : "New here? Create an account"}
+        <button type="button" onClick={toggleMode}>
+          {isSignUp ? 'Already have an account? Sign in' : 'New here? Create an account'}
         </button>
       </form>
     </div>

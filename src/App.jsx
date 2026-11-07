@@ -16,7 +16,7 @@ export default function App() {
 
   if (!supabase) {
     return (
-      <div className="app empty">
+      <div className="screen">
         <h2>Supabase isn't configured</h2>
         <p>
           Copy <code>.env.example</code> to <code>.env.local</code>, fill in your Supabase
