@@ -1163,3 +1163,139 @@ input[type='file'] {
 .question-view.with-spotdiff .answer-text {
   font-size: clamp(1.2rem, 2.2vw, 2.4rem);
 }
+
+/* ---------- Wheel ---------- */
+
+.wheel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: rgb(11 16 32 / 0.94);
+}
+
+.wheel-title {
+  font-size: clamp(1.6rem, 3.5vw, 3.5rem);
+  font-weight: 900;
+  color: var(--team);
+}
+
+.wheel-title span {
+  color: var(--accent);
+  margin-right: 0.3em;
+}
+
+.wheel-overlay .wheel-graphic {
+  width: min(62vh, 80vw);
+  height: auto;
+}
+
+.wheel-status {
+  min-height: 3.5em;
+  text-align: center;
+  font-size: clamp(1.2rem, 2vw, 2rem);
+  font-weight: 700;
+}
+
+.wheel-result {
+  font-size: clamp(1.8rem, 4vw, 4rem);
+  font-weight: 900;
+  color: var(--accent);
+  animation: pop 0.3s ease-out;
+}
+
+.wheel-overlay .host-controls {
+  margin-top: 0;
+}
+
+.wheel-phone-spinning {
+  animation: pulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  to {
+    opacity: 0.4;
+  }
+}
+
+.wheel-steal {
+  width: 100%;
+  margin-bottom: auto;
+}
+
+.player .wheel-result {
+  margin-bottom: auto;
+  text-align: center;
+  font-size: 2rem;
+}
+
+/* Wheel setup */
+.wheel-chance-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wheel-chance-row input {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
+.wheel-editor-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: 20px;
+  align-items: start;
+}
+
+.wheel-slices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding-left: 1.4em;
+}
+
+.wheel-slices li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wheel-slices select,
+.wheel-slices input {
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+
+.wheel-slices select {
+  flex: 1;
+}
+
+.wheel-slices input {
+  width: 110px;
+}
+
+.wheel-preview .wheel-graphic {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 700px) {
+  .wheel-editor-body {
+    grid-template-columns: 1fr;
+  }
+}

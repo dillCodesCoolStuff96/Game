@@ -7,7 +7,8 @@
 - [x] 3. All-play answers from phones, host grading (list / blanks / single formats)
 - [x] 4a. Spot-the-difference questions (buzz-in, circles on reveal, setup screen)
 - [ ] 4b. Name-that-song questions
-- [ ] 5. Wheel and bonus games (rapid fire, point wager)
+- [x] 5a. Wheel (random or manual trigger, team spins on phone, editable slices)
+- [ ] 5b. Bonus games on the wheel (rapid fire, point wager)
 - [ ] 6. Game editor (build boards and questions in the app)
 
 ## Later

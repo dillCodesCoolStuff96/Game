@@ -62,3 +62,12 @@ export function playAlarm() {
     tone(ctx, { type: 'square', frequency: 660, start: at + 0.15, duration: 0.15, volume: 0.25 })
   }
 }
+
+// Bright two-note ding when the wheel stops.
+export function playDing() {
+  const ctx = audio()
+  if (!ctx) return
+  const start = ctx.currentTime
+  tone(ctx, { type: 'sine', frequency: 880, start, duration: 0.18, volume: 0.2 })
+  tone(ctx, { type: 'sine', frequency: 1320, start: start + 0.16, duration: 0.4, volume: 0.2 })
+}

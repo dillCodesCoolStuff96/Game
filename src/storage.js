@@ -326,3 +326,38 @@ export async function uploadQuestionImage(file) {
   unwrap(await supabase.storage.from('question-images').upload(path, file, { contentType: file.type }))
   return supabase.storage.from('question-images').getPublicUrl(path).data.publicUrl
 }
+
+// ---------- Wheel ----------
+
+// The board's wheel setup: { chance, slices: [{ type, amount? }] }.
+export async function loadWheel(boardId) {
+  return unwrap(await supabase.from('boards').select('wheel').eq('id', boardId).single()).wheel
+}
+
+export async function saveWheel(boardId, wheel) {
+  unwrap(await supabase.from('boards').update({ wheel }).eq('id', boardId))
+}
+
+// Host: show the wheel for a team.
+export async function startWheel(roomId, teamId) {
+  unwrap(await supabase.rpc('start_wheel', { p_room_id: roomId, p_team_id: teamId }))
+}
+
+// Spinning team (or host): the server picks the slice.
+export async function spinWheel(roomId) {
+  unwrap(await supabase.rpc('spin_wheel', { p_room_id: roomId }))
+}
+
+// Host's TV, when the spin animation stops: apply the slice.
+export async function resolveWheel(roomId) {
+  unwrap(await supabase.rpc('resolve_wheel', { p_room_id: roomId }))
+}
+
+// After a Steal slice: who to take the points from.
+export async function wheelSteal(roomId, targetTeamId) {
+  unwrap(await supabase.rpc('wheel_steal', { p_room_id: roomId, p_target_team_id: targetTeamId }))
+}
+
+export async function closeWheel(roomId) {
+  unwrap(await supabase.rpc('close_wheel', { p_room_id: roomId }))
+}

@@ -7,10 +7,12 @@ import {
   expireBuzz,
   judgeAnswer,
   loadBoard,
+  loadWheel,
   openBuzzers,
   reopenQuestion,
   revealAnswer,
   showQuestion,
+  startWheel,
   undoLastScore,
 } from '../storage.js'
 import { teamColor } from '../teamColors.js'
@@ -21,6 +23,7 @@ import BoardView from './BoardView.jsx'
 import BuzzList from './BuzzList.jsx'
 import SpotDiffImages from './SpotDiffImages.jsx'
 import TeamSidebar from './TeamSidebar.jsx'
+import { WheelTV } from './Wheel.jsx'
 
 // A buzz still waiting for the host's verdict (not timed out or judged).
 const waiting = (b) => !b.expired && !b.result
@@ -31,6 +34,7 @@ const waiting = (b) => !b.expired && !b.result
 export default function HostScreen({ code }) {
   const { status, state, error, refresh } = useRoom(code)
   const [board, setBoard] = useState(null)
+  const [wheelSetup, setWheelSetup] = useState(null)
   const [actionError, setActionError] = useState('')
 
   const room = state?.room
@@ -38,8 +42,11 @@ export default function HostScreen({ code }) {
 
   useEffect(() => {
     if (!room?.board_id) return
-    loadBoard(room.board_id)
-      .then(setBoard)
+    Promise.all([loadBoard(room.board_id), loadWheel(room.board_id)])
+      .then(([nextBoard, nextWheel]) => {
+        setBoard(nextBoard)
+        setWheelSetup(nextWheel)
+      })
       .catch((err) => setActionError(err.message))
   }, [room?.board_id])
 
@@ -109,7 +116,19 @@ export default function HostScreen({ code }) {
     correct: () => {
       if (judgeIndex === -1) return
       timer.stop()
-      run(() => judgeAnswer(buzzes[judgeIndex].id, true))
+      const { id, team_id: teamId } = buzzes[judgeIndex]
+      run(async () => {
+        await judgeAnswer(id, true)
+        // Sometimes a correct answer lands the team on the wheel.
+        if (wheelSetup?.slices.length && Math.random() < wheelSetup.chance) {
+          await startWheel(room.id, teamId)
+        }
+      })
+    },
+    // Wheel on demand, for the team that last answered right.
+    wheel: () => {
+      if (room.wheel || !room.picking_team_id || !wheelSetup?.slices.length) return
+      run(() => startWheel(room.id, room.picking_team_id))
     },
     // Penalty only; the host presses Next team to put the next team on the clock.
     wrong: () => {
@@ -151,6 +170,7 @@ export default function HostScreen({ code }) {
         KeyS: timer.stop,
         KeyN: actions.timeNext,
         KeyU: actions.undo,
+        KeyH: actions.wheel,
       }
       const handler = keys[event.code]
       if (!handler) return
@@ -175,6 +195,11 @@ export default function HostScreen({ code }) {
 
   const { teams } = state
   const pickingTeam = teams.find((t) => t.id === room.picking_team_id)
+  const wheelButton = pickingTeam && !room.wheel && (
+    <button type="button" className="secondary" onClick={actions.wheel}>
+      Spin the wheel for {pickingTeam.name} (H)
+    </button>
+  )
 
   return (
     <div className="tv">
@@ -224,6 +249,7 @@ export default function HostScreen({ code }) {
                 <button type="button" className="secondary" onClick={actions.undo}>
                   Undo last score (U)
                 </button>
+                {wheelButton}
                 <button type="button" className="link" onClick={() => navigate('?host')}>
                   ← Games
                 </button>
@@ -283,6 +309,7 @@ export default function HostScreen({ code }) {
             <button type="button" className="secondary" onClick={actions.undo}>
               Undo last score (U)
             </button>
+            {wheelButton}
             <span className="answer-time">
               <span className="muted small">Answer time</span>
               <button
@@ -307,6 +334,9 @@ export default function HostScreen({ code }) {
           </div>
         )}
         {(actionError || error) && <p className="error">{actionError || error}</p>}
+        {room.wheel && wheelSetup && (
+          <WheelTV room={room} teams={teams} slices={wheelSetup.slices} run={run} />
+        )}
       </main>
     </div>
   )

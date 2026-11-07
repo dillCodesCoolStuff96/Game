@@ -3,6 +3,7 @@ import { navigate } from '../nav.js'
 import { ensureBoard, loadBoard, updateQuestion, uploadQuestionImage } from '../storage.js'
 import BoardView from './BoardView.jsx'
 import SpotDiffImages from './SpotDiffImages.jsx'
+import WheelEditor from './WheelEditor.jsx'
 
 const typeTag = (q) => {
   if (q.kind === 'allplay') return 'All play'
@@ -13,6 +14,7 @@ const typeTag = (q) => {
 // Question setup: pick a square, then edit its question. A first piece of the
 // full game editor; for now it covers buzz-in and spot-the-difference questions.
 export default function BoardEditor() {
+  const [boardId, setBoardId] = useState(null)
   const [board, setBoard] = useState(null)
   const [editing, setEditing] = useState(null)
   const [error, setError] = useState('')
@@ -28,8 +30,12 @@ export default function BoardEditor() {
   useEffect(() => {
     let active = true
     ensureBoard()
-      .then(loadBoard)
-      .then((next) => active && setBoard(next))
+      .then(async (id) => {
+        const next = await loadBoard(id)
+        if (!active) return
+        setBoardId(id)
+        setBoard(next)
+      })
       .catch((err) => active && setError(err.message))
     return () => {
       active = false
@@ -69,6 +75,7 @@ export default function BoardEditor() {
             onReopen={setEditing}
             tag={typeTag}
           />
+          {boardId && <WheelEditor boardId={boardId} />}
         </>
       ) : (
         <p className="muted">Loading board…</p>
