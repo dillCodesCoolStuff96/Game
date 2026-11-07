@@ -13,5 +13,6 @@
 - [ ] Better buzzer sound — current one works but doesn't sound great
 - [ ] Maybe show the answer countdown on phones too
 - [ ] Private host view (phone or second window) that shows the answer while the TV shows the question
+- [ ] Host can adjust any team's score at any time (add or take away points by hand)
 - [ ] Pick which board to play when starting a game (needs the editor)
 - [x] Block guest (anonymous) accounts from creating boards
