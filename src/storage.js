@@ -131,3 +131,9 @@ export async function setMyTeam(roomId, userId, teamId) {
 export async function buzz(roomId) {
   return unwrap(await supabase.rpc('buzz', { p_room_id: roomId }))
 }
+
+// Host's TV calls this when a team's answer time runs out; the team may then
+// buzz again.
+export async function expireBuzz(buzzId) {
+  unwrap(await supabase.from('buzzes').update({ expired: true }).eq('id', buzzId))
+}

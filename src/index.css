@@ -490,3 +490,8 @@ button:disabled {
     transform: translateX(8px);
   }
 }
+
+.buzz-order li.timed-out {
+  opacity: 0.45;
+  box-shadow: none;
+}

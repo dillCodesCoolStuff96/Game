@@ -100,29 +100,31 @@ function TeamPicker({ state, me, refresh }) {
 
 function Buzzer({ state, me, refresh }) {
   const { room, teams, players, buzzes } = state
-  // Round number we pressed in, so the button reacts before the server answers.
-  const [pressedRound, setPressedRound] = useState(null)
+  // True from the tap until the server answers, so the button reacts instantly.
+  const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
 
   const team = teams.find((t) => t.id === me.team_id)
-  const teamBuzz = buzzes.find((b) => b.team_id === me.team_id)
-  const place = teamBuzz ? buzzes.indexOf(teamBuzz) + 1 : null
+  // Timed-out buzzes are out of line; the team can buzz again after one.
+  const inLine = buzzes.filter((b) => !b.expired)
+  const teamBuzz = inLine.find((b) => b.team_id === me.team_id)
+  const place = teamBuzz ? inLine.indexOf(teamBuzz) + 1 : null
+  const timedOut = !teamBuzz && buzzes.some((b) => b.team_id === me.team_id)
   const buzzer = teamBuzz && players.find((p) => p.user_id === teamBuzz.user_id)
-  const pending = pressedRound === room.buzz_round && !teamBuzz
 
   async function handleBuzz() {
     if (!room.buzz_open || teamBuzz || pending) return
     navigator.vibrate?.(60)
     playBlip()
-    setPressedRound(room.buzz_round)
+    setPending(true)
     setError('')
     try {
       await buzz(room.id)
     } catch (err) {
       setError(err.message)
-      setPressedRound(null)
     }
-    refresh()
+    await refresh()
+    setPending(false)
   }
 
   let label = 'Wait…'
@@ -133,7 +135,9 @@ function Buzzer({ state, me, refresh }) {
   let caption = 'Buzzers are closed'
   if (teamBuzz) {
     caption = teamBuzz.user_id === me.user_id ? 'You buzzed in!' : `${buzzer?.name} buzzed in`
-  } else if (room.buzz_open) caption = 'Tap to buzz in'
+  } else if (timedOut && room.buzz_open) caption = "Time's up — buzz again if you know it"
+  else if (timedOut) caption = "Time's up"
+  else if (room.buzz_open) caption = 'Tap to buzz in'
 
   return (
     <div className="player" style={{ '--team': teamColor(teams, me.team_id) }}>

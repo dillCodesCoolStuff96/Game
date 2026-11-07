@@ -2,7 +2,7 @@ import QRCode from 'qrcode'
 import { useEffect, useRef, useState } from 'react'
 import { navigate } from '../nav.js'
 import { playBlip, playBuzzer } from '../sounds.js'
-import { closeBuzzers, deleteTeam, openBuzzers } from '../storage.js'
+import { closeBuzzers, deleteTeam, expireBuzz, openBuzzers } from '../storage.js'
 import { teamColor } from '../teamColors.js'
 import { useAnswerTimer } from '../useAnswerTimer.js'
 import { useRoom } from '../useRoom.js'
@@ -20,7 +20,11 @@ export default function HostScreen({ code }) {
 
   const room = state?.room
   const buzzes = state?.buzzes
-  const timer = useAnswerTimer(room?.buzz_round)
+  // Time ran out: the team's buzz is cancelled so they can buzz again.
+  const timer = useAnswerTimer(room?.buzz_round, (index) => {
+    const expired = buzzes?.[index]
+    if (expired) expireBuzz(expired.id).then(refresh)
+  })
 
   // Buzz ids already heard; null until the first load, so opening the screen
   // mid-round doesn't replay old buzzes.
@@ -45,9 +49,11 @@ export default function HostScreen({ code }) {
     refresh()
   }
 
-  // Next team in the buzz order (or the first, if nobody has been timed yet).
-  const nextIndex = timer.current ? timer.current.index + 1 : 0
-  const canTimeNext = Boolean(buzzes?.[nextIndex])
+  // Next team in line after the one being timed (or the first, if nobody has
+  // been timed yet), skipping buzzes that already timed out.
+  const after = timer.current ? timer.current.index : -1
+  const nextIndex = buzzes?.findIndex((b, i) => i > after && !b.expired) ?? -1
+  const canTimeNext = nextIndex !== -1
 
   useEffect(() => {
     function onKey(event) {
@@ -130,13 +136,15 @@ export default function HostScreen({ code }) {
             const player = players.find((p) => p.user_id === b.user_id)
             const gap = (new Date(b.buzzed_at).getTime() - firstTime) / 1000
             const answering = timer.current?.index === i
+            // Place among buzzes that are still in line (timed-out ones don't count).
+            const place = b.expired ? '–' : buzzes.slice(0, i + 1).filter((x) => !x.expired).length
             return (
               <li
                 key={b.id}
-                className={answering ? `answering ${timer.current.status}` : ''}
+                className={answering ? `answering ${timer.current.status}` : b.expired ? 'timed-out' : ''}
                 style={{ '--team': teamColor(teams, b.team_id), '--progress': timer.progress }}
               >
-                <span className="place">{i + 1}</span>
+                <span className="place">{place}</span>
                 <span className="who">
                   <strong>{team?.name ?? 'Removed team'}</strong>
                   <span className="muted">{player?.name}</span>
@@ -147,6 +155,8 @@ export default function HostScreen({ code }) {
                       ? "TIME'S UP"
                       : Math.ceil(timer.remaining / 1000)}
                   </span>
+                ) : b.expired ? (
+                  <span className="gap muted">Time's up</span>
                 ) : (
                   <span className="gap muted">{i === 0 ? '' : `+${gap.toFixed(2)}s`}</span>
                 )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { playAlarm } from './sounds.js'
 
 function savedSeconds() {
@@ -11,10 +11,15 @@ function savedSeconds() {
 
 // Countdown for the team currently answering (by place in the buzz order).
 // It belongs to one buzz round, so opening a new round clears it.
-export function useAnswerTimer(round) {
+// onExpire(index) is called when the time runs out.
+export function useAnswerTimer(round, onExpire) {
   const [seconds, setSecondsState] = useState(savedSeconds)
   const [timer, setTimer] = useState(null) // { round, index, endsAt, stoppedAt, status }
   const [now, setNow] = useState(() => Date.now())
+  const expireHandler = useRef(onExpire)
+  useEffect(() => {
+    expireHandler.current = onExpire
+  })
 
   const current = timer && timer.round === round ? timer : null
 
@@ -27,6 +32,7 @@ export function useAnswerTimer(round) {
         clearInterval(id)
         setTimer((prev) => (prev === current ? { ...prev, status: 'expired' } : prev))
         playAlarm()
+        expireHandler.current?.(current.index)
       }
     }, 100)
     return () => clearInterval(id)
