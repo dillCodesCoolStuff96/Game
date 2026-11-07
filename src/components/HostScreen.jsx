@@ -64,9 +64,12 @@ export default function HostScreen({ code }) {
     const fresh = heard.current ? buzzes.filter((b) => !heard.current.has(b.id)) : []
     heard.current = new Set(buzzes.map((b) => b.id))
     if (fresh.length === 0) return
-    if (fresh.some((b) => b.id === buzzes[0].id)) {
+    // A new buzz that's now first in line (the very first buzz, or a re-buzz
+    // when nobody else is waiting) goes straight on the clock.
+    const first = buzzes.findIndex(waiting)
+    if (first !== -1 && fresh.includes(buzzes[first]) && timer.current?.status !== 'running') {
       playBuzzer()
-      timer.start(0)
+      timer.start(first)
     } else playBlip()
     // Only new buzzes should trigger this, not timer re-renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps

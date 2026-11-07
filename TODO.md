@@ -14,4 +14,4 @@
 - [ ] Maybe show the answer countdown on phones too
 - [ ] Private host view (phone or second window) that shows the answer while the TV shows the question
 - [ ] Pick which board to play when starting a game (needs the editor)
-- [ ] Block guest (anonymous) accounts from creating boards — harmless now, tidy up in a later migration
+- [x] Block guest (anonymous) accounts from creating boards

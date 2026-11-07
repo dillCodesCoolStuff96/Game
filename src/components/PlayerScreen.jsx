@@ -106,14 +106,17 @@ function Buzzer({ state, me, refresh }) {
 
   const team = teams.find((t) => t.id === me.team_id)
   // Timed-out buzzes are out of line; the team can buzz again after one.
-  const inLine = buzzes.filter((b) => !b.expired)
+  // Buzzes still waiting for the host. A team whose last buzz timed out or was
+  // judged wrong can buzz again.
+  const inLine = buzzes.filter((b) => !b.expired && !b.result)
   const teamBuzz = inLine.find((b) => b.team_id === me.team_id)
   const place = teamBuzz ? inLine.indexOf(teamBuzz) + 1 : null
-  const timedOut = !teamBuzz && buzzes.some((b) => b.team_id === me.team_id)
+  const lastTeamBuzz = buzzes.findLast((b) => b.team_id === me.team_id)
+  const gotItRight = lastTeamBuzz?.result === 'correct'
   const buzzer = teamBuzz && players.find((p) => p.user_id === teamBuzz.user_id)
 
   async function handleBuzz() {
-    if (!room.buzz_open || teamBuzz || pending) return
+    if (!room.buzz_open || teamBuzz || gotItRight || pending) return
     navigator.vibrate?.(60)
     playBlip()
     setPending(true)
@@ -129,15 +132,18 @@ function Buzzer({ state, me, refresh }) {
 
   let label = 'Wait…'
   if (teamBuzz) label = `#${place}`
+  else if (gotItRight) label = '✓'
   else if (pending) label = '…'
   else if (room.buzz_open) label = 'BUZZ'
 
   let caption = 'Buzzers are closed'
   if (teamBuzz) {
     caption = teamBuzz.user_id === me.user_id ? 'You buzzed in!' : `${buzzer?.name} buzzed in`
-  } else if (timedOut && room.buzz_open) caption = "Time's up — buzz again if you know it"
-  else if (timedOut) caption = "Time's up"
-  else if (room.buzz_open) caption = 'Tap to buzz in'
+  } else if (gotItRight) caption = 'Correct!'
+  else if (lastTeamBuzz) {
+    const what = lastTeamBuzz.result === 'wrong' ? 'Wrong' : "Time's up"
+    caption = room.buzz_open ? `${what} — buzz again if you know it` : what
+  } else if (room.buzz_open) caption = 'Tap to buzz in'
 
   return (
     <div className="player" style={{ '--team': teamColor(teams, me.team_id) }}>
@@ -148,7 +154,7 @@ function Buzzer({ state, me, refresh }) {
 
       <button
         type="button"
-        className={`buzz-button ${room.buzz_open && !teamBuzz ? 'live' : ''} ${place === 1 ? 'first' : ''}`}
+        className={`buzz-button ${room.buzz_open && !teamBuzz && !gotItRight ? 'live' : ''} ${place === 1 || gotItRight ? 'first' : ''}`}
         disabled={!room.buzz_open && !teamBuzz}
         onPointerDown={handleBuzz}
       >
