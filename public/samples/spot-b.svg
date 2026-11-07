@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <rect width="800" height="600" fill="#1e3a5f"/>
+  <g fill="#ffffff" opacity="0.8">
+    <circle cx="120" cy="60" r="2"/><circle cx="300" cy="40" r="2"/><circle cx="560" cy="70" r="2"/>
+    <circle cx="420" cy="30" r="2"/><circle cx="760" cy="180" r="2"/><circle cx="220" cy="110" r="2"/>
+  </g>
+  
+  <rect y="430" width="800" height="170" fill="#f1f5f9"/>
+  <rect x="60" y="250" width="220" height="180" fill="#b45309"/>
+  <polygon points="40,250 170,150 300,250" fill="#7f1d1d"/>
+  <rect x="145" y="340" width="50" height="90" fill="#451a03"/>
+  <rect x="85" y="290" width="45" height="45" fill="#fde68a"/>
+  <rect x="210" y="290" width="45" height="45" fill="#374151"/>
+  <rect x="455" y="380" width="30" height="50" fill="#78350f"/>
+  <polygon points="470,140 390,300 550,300" fill="#166534"/>
+  <polygon points="470,200 370,380 570,380" fill="#166534"/>
+  <g>
+    <circle cx="440" cy="270" r="8" fill="#dc2626"/><circle cx="505" cy="285" r="8" fill="#facc15"/>
+    <circle cx="420" cy="350" r="8" fill="#3b82f6"/><circle cx="480" cy="335" r="8" fill="#dc2626"/>
+    <circle cx="530" cy="360" r="8" fill="#facc15"/>
+  </g>
+  
+  <rect x="400" y="395" width="50" height="40" fill="#dc2626"/><rect x="421" y="395" width="8" height="40" fill="#facc15"/>
+  <rect x="500" y="400" width="45" height="35" fill="#2563eb"/><rect x="518" y="400" width="8" height="35" fill="#f1f5f9"/>
+  <circle cx="680" cy="470" r="55" fill="#ffffff"/>
+  <circle cx="680" cy="385" r="40" fill="#ffffff"/>
+  <circle cx="680" cy="320" r="28" fill="#ffffff"/>
+  <circle cx="671" cy="314" r="3" fill="#111827"/><circle cx="689" cy="314" r="3" fill="#111827"/>
+  <polygon points="680,320 700,326 680,329" fill="#f97316"/>
+  <circle cx="680" cy="375" r="4" fill="#111827"/><circle cx="680" cy="395" r="4" fill="#111827"/>
+  <rect x="655" y="290" width="50" height="10" fill="#b91c1c"/>
+  <rect x="665" y="255" width="30" height="37" fill="#b91c1c"/>
+</svg>

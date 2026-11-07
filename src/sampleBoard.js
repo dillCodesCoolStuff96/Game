@@ -1,6 +1,7 @@
 // Placeholder board for testing until the game editor exists (step 6).
 // Questions are [prompt, answer] for buzz-in questions, or objects for
-// all-play ones (kept in sync with migration 006, which updates older copies).
+// all-play and spot-the-difference ones (kept in sync with migrations 006 and
+// 008, which update older copies).
 export const sampleBoard = {
   title: 'Sample board',
   categories: [
@@ -103,7 +104,20 @@ export const sampleBoard = {
         ['What is the main ingredient in guacamole?', 'Avocado'],
         ['Which country does pizza come from?', 'Italy'],
         ['Which nut is used to make marzipan?', 'Almond'],
-        ['Which spice comes from the dried stigmas of a crocus flower?', 'Saffron'],
+        {
+          prompt: 'Spot the 4 differences!',
+          answer: "No moon, no star on the tree, a window light is off, the snowman's hat is red",
+          spotdiff: {
+            left: '/samples/spot-a.svg',
+            right: '/samples/spot-b.svg',
+            spots: [
+              { x: 0.85, y: 0.15 },
+              { x: 0.5875, y: 0.233 },
+              { x: 0.29, y: 0.52 },
+              { x: 0.85, y: 0.46 },
+            ],
+          },
+        },
         ['What kind of pastry are profiteroles made from?', 'Choux pastry'],
       ],
     },

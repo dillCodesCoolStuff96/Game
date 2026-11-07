@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import AdminScreen from './components/AdminScreen.jsx'
 import Auth from './components/Auth.jsx'
+import BoardEditor from './components/BoardEditor.jsx'
 import Home from './components/Home.jsx'
 import HostHome from './components/HostHome.jsx'
 import HostScreen from './components/HostScreen.jsx'
@@ -35,10 +36,11 @@ export default function App() {
   if (session === undefined) return null
 
   // Host pages need a real (email) account; players are anonymous.
-  if (params.has('host') || params.has('admin')) {
+  if (params.has('host') || params.has('admin') || params.has('edit')) {
     if (!session || session.user.is_anonymous) return <Auth />
     const adminCode = params.get('admin')
     if (adminCode) return <AdminScreen key={adminCode} code={adminCode} />
+    if (params.has('edit')) return <BoardEditor />
     const code = params.get('host')
     if (code) return <HostScreen key={code} code={code} />
     return <HostHome user={session.user} />

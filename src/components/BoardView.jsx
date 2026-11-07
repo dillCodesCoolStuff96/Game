@@ -1,5 +1,6 @@
 // The category grid. Played questions are blank; clicking one offers to reopen it.
-export default function BoardView({ board, played, onPick, onReopen }) {
+// tag(question), if given, labels a cell (the setup screen shows question types).
+export default function BoardView({ board, played, onPick, onReopen, tag }) {
   const rows = Math.max(0, ...board.map((c) => c.questions.length))
 
   return (
@@ -23,6 +24,7 @@ export default function BoardView({ board, played, onPick, onReopen }) {
               aria-label={`${category.name} for ${q.value}${done ? ' (played)' : ''}`}
             >
               {done ? '' : q.value}
+              {tag?.(q) && <span className="cell-tag">{tag(q)}</span>}
             </button>
           )
         }),

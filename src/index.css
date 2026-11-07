@@ -952,3 +952,214 @@ button:disabled {
 .mark.wrong {
   color: var(--danger);
 }
+
+/* ---------- Spot the difference ---------- */
+
+.spotdiff {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.spotdiff-image {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.spotdiff-frame {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+
+.spotdiff-frame img {
+  max-width: 100%;
+  max-height: 52vh;
+  border-radius: 10px;
+  user-select: none;
+}
+
+.spotdiff.editing .spotdiff-frame {
+  cursor: crosshair;
+}
+
+.spotdiff.editing .spotdiff-frame img {
+  max-height: 60vh;
+}
+
+.spot {
+  position: absolute;
+  width: clamp(28px, 7%, 64px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 4px solid var(--accent);
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.15);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 0 0 2px rgb(0 0 0 / 0.5);
+}
+
+.spot.revealed {
+  color: transparent;
+  animation: spot-in 0.4s ease-out backwards;
+  animation-delay: calc(var(--i) * 0.35s);
+}
+
+@keyframes spot-in {
+  from {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
+}
+
+.spotdiff-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+}
+
+.question-view.with-spotdiff {
+  gap: 16px;
+}
+
+.question-view.with-spotdiff .question-prompt {
+  font-size: clamp(1.4rem, 2.4vw, 2.6rem);
+}
+
+/* ---------- Question setup ---------- */
+
+.editor {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.editor-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.editor .board-cell {
+  position: relative;
+  font-size: clamp(1.1rem, 2.2vw, 2.2rem);
+}
+
+.cell-tag {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.editor-form h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.editor-form .allplay-badge {
+  font-size: 0.7rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.field > span {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  resize: vertical;
+}
+
+input[type='file'] {
+  min-height: 0;
+  padding: 8px;
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.segmented button {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.segmented button.selected {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.editor-uploads {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.editor-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Admin phone: circled pictures above the answer. */
+.admin-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.admin .spotdiff {
+  grid-template-columns: 1fr;
+}
+
+.admin-answer.small {
+  font-size: 1.4rem;
+}
+
+.question-view.with-spotdiff .answer-text {
+  font-size: clamp(1.2rem, 2.2vw, 2.4rem);
+}

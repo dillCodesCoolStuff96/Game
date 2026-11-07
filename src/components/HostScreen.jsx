@@ -19,6 +19,7 @@ import { useRoom } from '../useRoom.js'
 import AllPlayHost from './AllPlayHost.jsx'
 import BoardView from './BoardView.jsx'
 import BuzzList from './BuzzList.jsx'
+import SpotDiffImages from './SpotDiffImages.jsx'
 import TeamSidebar from './TeamSidebar.jsx'
 
 // A buzz still waiting for the host's verdict (not timed out or judged).
@@ -317,12 +318,16 @@ function QuestionView({ question, phase, state, timer }) {
   const winnerTeam = winner && state.teams.find((t) => t.id === winner.team_id)
 
   return (
-    <div className="question-view">
+    <div className={`question-view ${question.spotdiff ? 'with-spotdiff' : ''}`}>
       <p className="question-meta">
         {question.category} · <strong>{question.value}</strong>
       </p>
       <p className={`question-prompt ${phase === 'answer' ? 'small' : ''}`}>{question.prompt}</p>
-      {question.image_url && <img className="question-image" src={question.image_url} alt="" />}
+      {question.spotdiff ? (
+        <SpotDiffImages spotdiff={question.spotdiff} reveal={phase === 'answer'} />
+      ) : (
+        question.image_url && <img className="question-image" src={question.image_url} alt="" />
+      )}
 
       {phase === 'answer' ? (
         <div className="answer-reveal">

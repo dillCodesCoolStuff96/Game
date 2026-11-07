@@ -5,7 +5,8 @@
 - [x] Answer timer after a buzz, with a time's-up alarm
 - [ ] 2. Board and scoring
 - [x] 3. All-play answers from phones, host grading (list / blanks / single formats)
-- [ ] 4. Name-that-song and spot-the-difference questions
+- [x] 4a. Spot-the-difference questions (buzz-in, circles on reveal, setup screen)
+- [ ] 4b. Name-that-song questions
 - [ ] 5. Wheel and bonus games (rapid fire, point wager)
 - [ ] 6. Game editor (build boards and questions in the app)
 

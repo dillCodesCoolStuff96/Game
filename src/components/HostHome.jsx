@@ -34,6 +34,9 @@ export default function HostHome({ user }) {
         <button type="button" className="primary" disabled={busy} onClick={handleCreate}>
           {busy ? 'Creating…' : 'Start a new game'}
         </button>
+        <button type="button" className="secondary" onClick={() => navigate('?edit')}>
+          Set up questions
+        </button>
 
         {error && <p className="error">{error}</p>}
 

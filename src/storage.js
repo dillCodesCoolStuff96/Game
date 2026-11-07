@@ -177,7 +177,7 @@ export async function ensureBoard() {
   )
   const questions = categories.flatMap((category) =>
     sampleBoard.categories[category.position].questions.map((question, i) => {
-      const { prompt, answer, allplay } = Array.isArray(question)
+      const { prompt, answer, allplay, spotdiff } = Array.isArray(question)
         ? { prompt: question[0], answer: question[1] }
         : question
       return {
@@ -187,6 +187,7 @@ export async function ensureBoard() {
         answer,
         kind: allplay ? 'allplay' : 'buzz',
         allplay: allplay ?? null,
+        spotdiff: spotdiff ?? null,
       }
     }),
   )
@@ -199,7 +200,7 @@ export async function loadBoard(boardId) {
   const categories = unwrap(
     await supabase
       .from('categories')
-      .select('id, name, position, questions(id, value, prompt, answer, image_url, kind, allplay)')
+      .select('id, name, position, questions(id, value, prompt, answer, image_url, kind, allplay, spotdiff)')
       .eq('board_id', boardId)
       .order('position'),
   )
@@ -308,4 +309,20 @@ export async function removeAllPlayAnswer(answerId) {
 // Players: fill in one box (blanks/single).
 export async function setAllPlayAnswer(roomId, slot, text) {
   unwrap(await supabase.rpc('allplay_set', { p_room_id: roomId, p_slot: slot, p_text: text }))
+}
+
+// ---------- Editing questions (host) ----------
+
+export async function updateQuestion(questionId, fields) {
+  unwrap(await supabase.from('questions').update(fields).eq('id', questionId))
+}
+
+// Uploads an image into the host's folder and returns its public URL.
+export async function uploadQuestionImage(file) {
+  const { data } = await supabase.auth.getSession()
+  const extension = (file.name.split('.').pop() || 'png').toLowerCase()
+  const name = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`
+  const path = `${data.session.user.id}/${name}`
+  unwrap(await supabase.storage.from('question-images').upload(path, file, { contentType: file.type }))
+  return supabase.storage.from('question-images').getPublicUrl(path).data.publicUrl
 }

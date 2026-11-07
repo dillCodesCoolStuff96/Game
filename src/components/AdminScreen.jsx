@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { loadBoard } from '../storage.js'
 import { useRoom } from '../useRoom.js'
+import SpotDiffImages from './SpotDiffImages.jsx'
 
 // The host's private phone screen: just the answer to the question on the TV.
 export default function AdminScreen({ code }) {
@@ -44,7 +45,11 @@ export default function AdminScreen({ code }) {
   return (
     <div className="admin">
       {question ? (
-        <p className="admin-answer">{question.answer}</p>
+        <div className="admin-stack">
+          {/* For spot the difference, the circled pictures are the answer. */}
+          {question.spotdiff && <SpotDiffImages spotdiff={question.spotdiff} reveal />}
+          <p className={`admin-answer ${question.spotdiff ? 'small' : ''}`}>{question.answer}</p>
+        </div>
       ) : (
         <p className="muted">Waiting for a question…</p>
       )}
