@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { navigate } from '../nav.js'
 import { ensureBoard, loadBoard, updateQuestion, uploadQuestionImage } from '../storage.js'
 import BoardView from './BoardView.jsx'
+import BonusEditor from './BonusEditor.jsx'
 import SpotDiffImages from './SpotDiffImages.jsx'
 import WheelEditor from './WheelEditor.jsx'
 
@@ -76,6 +77,7 @@ export default function BoardEditor() {
             tag={typeTag}
           />
           {boardId && <WheelEditor boardId={boardId} />}
+          {boardId && <BonusEditor boardId={boardId} />}
         </>
       ) : (
         <p className="muted">Loading board…</p>

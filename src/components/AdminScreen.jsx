@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { loadBoard } from '../storage.js'
+import { bonusItem } from '../bonus.js'
+import { loadBoard, loadBonusDecks } from '../storage.js'
 import { useRoom } from '../useRoom.js'
 import SpotDiffImages from './SpotDiffImages.jsx'
 
@@ -7,11 +8,13 @@ import SpotDiffImages from './SpotDiffImages.jsx'
 export default function AdminScreen({ code }) {
   const { status, state, error } = useRoom(code)
   const [board, setBoard] = useState(null)
+  const [decks, setDecks] = useState([])
   const boardId = state?.room.board_id
 
   useEffect(() => {
     if (!boardId) return
     loadBoard(boardId).then(setBoard)
+    loadBonusDecks(boardId).then(setDecks)
   }, [boardId])
 
   // Keep the phone from dimming and locking mid-game (where supported).
@@ -36,6 +39,23 @@ export default function AdminScreen({ code }) {
 
   if (status === 'missing') return <div className="screen">No game found with code {code}.</div>
   if (!state) return <div className="screen muted">{error || 'Loading…'}</div>
+
+  const { bonus } = state.room
+  if (bonus?.status === 'playing') {
+    const item = bonusItem(bonus, decks.find((d) => d.id === bonus.deck_id))
+    return (
+      <div className="admin">
+        <div className="admin-stack">
+          <p className="muted">{bonus.name}</p>
+          {item ? (
+            <p className="admin-answer">{item.answer}</p>
+          ) : (
+            <p className="muted">That's every item</p>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   const questionId = state.room.current_question_id
   const question = board

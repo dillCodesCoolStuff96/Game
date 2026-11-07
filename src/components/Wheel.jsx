@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { playBuzzer, playDing } from '../sounds.js'
-import { closeWheel, resolveWheel, spinWheel, wheelSteal } from '../storage.js'
+import { closeWheel, resolveWheel, spinWheel, startBonus, wheelSteal } from '../storage.js'
 import { teamColor } from '../teamColors.js'
 import { sliceColor, sliceLabel } from '../wheel.js'
 
@@ -99,12 +99,18 @@ export function WheelTV({ room, teams, slices, run }) {
   }, [wheel.status])
 
   const finished = wheel.status === 'done' || wheel.status === 'bonus'
+  // After the Bonus slice, continuing offers the team a bonus game.
+  const finish = () =>
+    run(async () => {
+      if (wheel.status === 'bonus') await startBonus(room.id, wheel.team_id)
+      await closeWheel(room.id)
+    })
 
   useEffect(() => {
     function onKey(event) {
       if (!finished || !['Escape', 'Enter'].includes(event.key)) return
       event.preventDefault()
-      run(() => closeWheel(room.id))
+      finish()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -122,7 +128,6 @@ export function WheelTV({ room, teams, slices, run }) {
         {wheel.status === 'ready' && <p>Spin it on your phone!</p>}
         {wheel.status === 'spinning' && <p>Spinning…</p>}
         {(wheel.status === 'choose' || finished) && <p className="wheel-result">{wheel.result}</p>}
-        {wheel.status === 'bonus' && <p className="muted">Bonus games are coming soon.</p>}
       </div>
 
       <div className="host-controls">
@@ -145,8 +150,8 @@ export function WheelTV({ room, teams, slices, run }) {
               </button>
             ))}
         {finished && (
-          <button type="button" className="primary big" onClick={() => run(() => closeWheel(room.id))}>
-            Continue (Enter)
+          <button type="button" className="primary big" onClick={finish}>
+            {wheel.status === 'bonus' ? 'Play the bonus game' : 'Continue'} (Enter)
           </button>
         )}
         {!finished && (

@@ -192,6 +192,11 @@ export async function ensureBoard() {
     }),
   )
   unwrap(await supabase.from('questions').insert(questions))
+  unwrap(
+    await supabase
+      .from('bonus_decks')
+      .insert(sampleBoard.bonusDecks.map((deck) => ({ ...deck, board_id: board.id }))),
+  )
   return board.id
 }
 
@@ -360,4 +365,51 @@ export async function wheelSteal(roomId, targetTeamId) {
 
 export async function closeWheel(roomId) {
   unwrap(await supabase.rpc('close_wheel', { p_room_id: roomId }))
+}
+
+// ---------- Bonus games ----------
+
+export async function loadBonusDecks(boardId) {
+  return unwrap(
+    await supabase.from('bonus_decks').select('*').eq('board_id', boardId).order('created_at'),
+  )
+}
+
+// Creates the deck if it has no id yet; returns the saved deck.
+export async function saveBonusDeck(deck) {
+  const { id, ...fields } = deck
+  const query = id
+    ? supabase.from('bonus_decks').update(fields).eq('id', id)
+    : supabase.from('bonus_decks').insert(fields)
+  return unwrap(await query.select().single())
+}
+
+export async function deleteBonusDeck(deckId) {
+  unwrap(await supabase.from('bonus_decks').delete().eq('id', deckId))
+}
+
+// Host: offer a bonus game (random deck) to a team.
+export async function startBonus(roomId, teamId) {
+  unwrap(await supabase.rpc('start_bonus', { p_room_id: roomId, p_team_id: teamId }))
+}
+
+// Team (or host): play for it, or keep the points.
+export async function bonusChoose(roomId, play) {
+  unwrap(await supabase.rpc('bonus_choose', { p_room_id: roomId, p_play: play }))
+}
+
+export async function bonusStart(roomId) {
+  unwrap(await supabase.rpc('bonus_start', { p_room_id: roomId }))
+}
+
+export async function bonusMark(roomId, correct) {
+  unwrap(await supabase.rpc('bonus_mark', { p_room_id: roomId, p_correct: correct }))
+}
+
+export async function bonusFinish(roomId) {
+  unwrap(await supabase.rpc('bonus_finish', { p_room_id: roomId }))
+}
+
+export async function closeBonus(roomId) {
+  unwrap(await supabase.rpc('close_bonus', { p_room_id: roomId }))
 }

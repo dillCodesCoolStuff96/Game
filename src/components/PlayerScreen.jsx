@@ -5,6 +5,7 @@ import { buzz, createTeam, setMyTeam } from '../storage.js'
 import { teamColor } from '../teamColors.js'
 import { useRoom } from '../useRoom.js'
 import AllPlayPhone from './AllPlayPhone.jsx'
+import { BonusPhone } from './Bonus.jsx'
 import WheelPhone from './WheelPhone.jsx'
 
 export default function PlayerScreen({ code, userId }) {
@@ -29,6 +30,7 @@ export default function PlayerScreen({ code, userId }) {
 
   const props = { state, me, refresh }
   if (!me.team_id) return <TeamPicker {...props} />
+  if (state.room.bonus) return <BonusPhone {...props} />
   if (state.room.wheel) return <WheelPhone {...props} />
   // All-play questions swap the buzzer for the team's answer sheet.
   if (state.room.allplay && state.room.phase !== 'board') {

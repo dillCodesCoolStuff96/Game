@@ -8,7 +8,8 @@
 - [x] 4a. Spot-the-difference questions (buzz-in, circles on reveal, setup screen)
 - [ ] 4b. Name-that-song questions
 - [x] 5a. Wheel (random or manual trigger, team spins on phone, editable slices)
-- [ ] 5b. Bonus games on the wheel (rapid fire, point wager)
+- [x] 5b. Bonus game: rapid fire with point trade (decks per category, text or picture items)
+- [ ] Bonus: pick category / difficulty (maybe a second wheel) instead of random
 - [ ] 6. Game editor (build boards and questions in the app)
 
 ## Later

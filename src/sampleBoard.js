@@ -4,6 +4,34 @@
 // 008, which update older copies).
 export const sampleBoard = {
   title: 'Sample board',
+  // Bonus game decks (kept in sync with migration 010).
+  bonusDecks: [
+    {
+      name: 'World capitals',
+      items: [
+        ['France', 'Paris'],
+        ['Japan', 'Tokyo'],
+        ['Italy', 'Rome'],
+        ['Canada', 'Ottawa'],
+        ['Australia', 'Canberra'],
+        ['Spain', 'Madrid'],
+        ['Germany', 'Berlin'],
+        ['Egypt', 'Cairo'],
+        ['Brazil', 'Brasília'],
+        ['Mexico', 'Mexico City'],
+        ['Russia', 'Moscow'],
+        ['India', 'New Delhi'],
+        ['China', 'Beijing'],
+        ['Kenya', 'Nairobi'],
+        ['Argentina', 'Buenos Aires'],
+        ['Norway', 'Oslo'],
+        ['Greece', 'Athens'],
+        ['Thailand', 'Bangkok'],
+        ['Peru', 'Lima'],
+        ['Ireland', 'Dublin'],
+      ].map(([prompt, answer]) => ({ prompt, answer })),
+    },
+  ],
   categories: [
     {
       name: 'Christmas Movies',

@@ -7,6 +7,7 @@ import {
   expireBuzz,
   judgeAnswer,
   loadBoard,
+  loadBonusDecks,
   loadWheel,
   openBuzzers,
   reopenQuestion,
@@ -19,6 +20,7 @@ import { teamColor } from '../teamColors.js'
 import { useAnswerTimer } from '../useAnswerTimer.js'
 import { useRoom } from '../useRoom.js'
 import AllPlayHost from './AllPlayHost.jsx'
+import { BonusTV } from './Bonus.jsx'
 import BoardView from './BoardView.jsx'
 import BuzzList from './BuzzList.jsx'
 import SpotDiffImages from './SpotDiffImages.jsx'
@@ -35,6 +37,7 @@ export default function HostScreen({ code }) {
   const { status, state, error, refresh } = useRoom(code)
   const [board, setBoard] = useState(null)
   const [wheelSetup, setWheelSetup] = useState(null)
+  const [bonusDecks, setBonusDecks] = useState([])
   const [actionError, setActionError] = useState('')
 
   const room = state?.room
@@ -42,10 +45,11 @@ export default function HostScreen({ code }) {
 
   useEffect(() => {
     if (!room?.board_id) return
-    Promise.all([loadBoard(room.board_id), loadWheel(room.board_id)])
-      .then(([nextBoard, nextWheel]) => {
+    Promise.all([loadBoard(room.board_id), loadWheel(room.board_id), loadBonusDecks(room.board_id)])
+      .then(([nextBoard, nextWheel, nextDecks]) => {
         setBoard(nextBoard)
         setWheelSetup(nextWheel)
+        setBonusDecks(nextDecks)
       })
       .catch((err) => setActionError(err.message))
   }, [room?.board_id])
@@ -127,7 +131,7 @@ export default function HostScreen({ code }) {
     },
     // Wheel on demand, for the team that last answered right.
     wheel: () => {
-      if (room.wheel || !room.picking_team_id || !wheelSetup?.slices.length) return
+      if (room.wheel || room.bonus || !room.picking_team_id || !wheelSetup?.slices.length) return
       run(() => startWheel(room.id, room.picking_team_id))
     },
     // Penalty only; the host presses Next team to put the next team on the clock.
@@ -158,6 +162,8 @@ export default function HostScreen({ code }) {
   useEffect(() => {
     function onKey(event) {
       if (!room || event.target.closest?.('input, textarea')) return
+      // The wheel and bonus game have their own keys.
+      if (room.wheel || room.bonus) return
       if (event.ctrlKey || event.metaKey || event.altKey) return
       // All-play questions handle their own keys (see AllPlayHost).
       const inQuestion = room.phase === 'question' && !isAllPlay
@@ -195,7 +201,7 @@ export default function HostScreen({ code }) {
 
   const { teams } = state
   const pickingTeam = teams.find((t) => t.id === room.picking_team_id)
-  const wheelButton = pickingTeam && !room.wheel && (
+  const wheelButton = pickingTeam && !room.wheel && !room.bonus && (
     <button type="button" className="secondary" onClick={actions.wheel}>
       Spin the wheel for {pickingTeam.name} (H)
     </button>
@@ -337,6 +343,7 @@ export default function HostScreen({ code }) {
         {room.wheel && wheelSetup && (
           <WheelTV room={room} teams={teams} slices={wheelSetup.slices} run={run} />
         )}
+        {room.bonus && <BonusTV room={room} teams={teams} decks={bonusDecks} run={run} />}
       </main>
     </div>
   )

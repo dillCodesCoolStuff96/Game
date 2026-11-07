@@ -1299,3 +1299,135 @@ input[type='file'] {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Bonus games ---------- */
+
+.bonus-category {
+  margin-top: -8px;
+  font-size: clamp(1.4rem, 3vw, 3rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.bonus-offer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+  font-size: clamp(1.2rem, 2.2vw, 2.2rem);
+  font-weight: 700;
+}
+
+.bonus-offer strong {
+  color: var(--accent);
+}
+
+.bonus-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.bonus-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 1000px);
+  min-height: 34vh;
+  padding: 24px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: clamp(2.4rem, 6vw, 6rem);
+  font-weight: 900;
+  text-align: center;
+}
+
+.bonus-item img {
+  max-width: 100%;
+  max-height: 34vh;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.bonus-score {
+  font-size: clamp(1.3rem, 2.4vw, 2.4rem);
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.bonus-choice {
+  width: 100%;
+  margin-bottom: auto;
+}
+
+.bonus-choice .primary.big {
+  min-height: 72px;
+}
+
+/* Bonus game setup */
+.deck-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.deck-settings select,
+.deck-items input {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+
+.field-label {
+  font-weight: 700;
+}
+
+.deck-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 420px;
+  margin: 0;
+  padding-left: 2em;
+  overflow-y: auto;
+}
+
+.deck-items li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deck-items input {
+  flex: 1;
+  min-width: 0;
+}
+
+.deck-items img {
+  width: 72px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.deck-add {
+  display: grid;
+  gap: 10px;
+}
+
+.deck-add > .secondary {
+  justify-self: start;
+}
+
+.danger-link {
+  color: var(--danger);
+}
