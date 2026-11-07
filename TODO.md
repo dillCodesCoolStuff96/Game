@@ -12,3 +12,5 @@
 ## Later
 - [ ] Better buzzer sound — current one works but doesn't sound great
 - [ ] Maybe show the answer countdown on phones too
+- [ ] Private host view (phone or second window) that shows the answer while the TV shows the question
+- [ ] Pick which board to play when starting a game (needs the editor)
