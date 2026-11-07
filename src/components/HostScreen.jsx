@@ -1,6 +1,7 @@
 import QRCode from 'qrcode'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { navigate } from '../nav.js'
+import { playBlip, playBuzzer } from '../sounds.js'
 import { closeBuzzers, deleteTeam, openBuzzers } from '../storage.js'
 import { teamColor } from '../teamColors.js'
 import { useRoom } from '../useRoom.js'
@@ -16,6 +17,19 @@ export default function HostScreen({ code }) {
   }, [joinUrl])
 
   const room = state?.room
+  const buzzes = state?.buzzes
+
+  // Buzz ids already heard; null until the first load, so opening the screen
+  // mid-round doesn't replay old buzzes.
+  const heard = useRef(null)
+  useEffect(() => {
+    if (!buzzes) return
+    const fresh = heard.current ? buzzes.filter((b) => !heard.current.has(b.id)) : []
+    heard.current = new Set(buzzes.map((b) => b.id))
+    if (fresh.length === 0) return
+    if (fresh.some((b) => b.id === buzzes[0].id)) playBuzzer()
+    else playBlip()
+  }, [buzzes])
 
   async function toggleBuzzers() {
     if (!room) return
@@ -52,7 +66,7 @@ export default function HostScreen({ code }) {
   }
   if (!state) return <div className="screen muted">{error || 'Loading…'}</div>
 
-  const { teams, players, buzzes } = state
+  const { teams, players } = state
   const firstTime = buzzes[0] && new Date(buzzes[0].buzzed_at).getTime()
 
   return (

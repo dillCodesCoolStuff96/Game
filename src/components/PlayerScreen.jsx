@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { navigate } from '../nav.js'
+import { playBlip } from '../sounds.js'
 import { buzz, createTeam, setMyTeam } from '../storage.js'
 import { teamColor } from '../teamColors.js'
 import { useRoom } from '../useRoom.js'
@@ -112,6 +113,7 @@ function Buzzer({ state, me, refresh }) {
   async function handleBuzz() {
     if (!room.buzz_open || teamBuzz || pending) return
     navigator.vibrate?.(60)
+    playBlip()
     setPressedRound(room.buzz_round)
     setError('')
     try {
