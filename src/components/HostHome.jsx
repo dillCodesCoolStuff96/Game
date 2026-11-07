@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { navigate } from '../nav.js'
-import { createRoom, listMyRooms, signOut } from '../storage.js'
+import { createRoom, ensureBoard, listMyRooms, signOut } from '../storage.js'
 
 export default function HostHome({ user }) {
   const [rooms, setRooms] = useState([])
@@ -17,7 +17,7 @@ export default function HostHome({ user }) {
     setBusy(true)
     setError('')
     try {
-      const code = await createRoom()
+      const code = await createRoom(await ensureBoard())
       navigate(`?host=${code}`)
     } catch (err) {
       setError(err.message)

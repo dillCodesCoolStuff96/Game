@@ -1,25 +1,55 @@
-import QRCode from 'qrcode'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { navigate } from '../nav.js'
 import { playBlip, playBuzzer } from '../sounds.js'
-import { closeBuzzers, deleteTeam, expireBuzz, openBuzzers } from '../storage.js'
+import {
+  backToBoard,
+  closeBuzzers,
+  expireBuzz,
+  judgeAnswer,
+  loadBoard,
+  openBuzzers,
+  reopenQuestion,
+  revealAnswer,
+  showQuestion,
+  undoLastScore,
+} from '../storage.js'
 import { teamColor } from '../teamColors.js'
 import { useAnswerTimer } from '../useAnswerTimer.js'
 import { useRoom } from '../useRoom.js'
+import BoardView from './BoardView.jsx'
+import BuzzList from './BuzzList.jsx'
+import TeamSidebar from './TeamSidebar.jsx'
 
-// The TV view, driven from the host's PC.
-// Keys: Space opens/closes the buzzers, S stops the answer timer, N times the next team.
+// A buzz still waiting for the host's verdict (not timed out or judged).
+const waiting = (b) => !b.expired && !b.result
+
+// The TV view, driven from the host's PC. Keys:
+// Space buzzers open/close · C correct · W wrong · A reveal answer · B back to board
+// S stop timer · N time the next team · U undo last score
 export default function HostScreen({ code }) {
   const { status, state, error, refresh } = useRoom(code)
-  const [qr, setQr] = useState('')
-  const joinUrl = `${window.location.origin}/?code=${code}`
-
-  useEffect(() => {
-    QRCode.toDataURL(joinUrl, { margin: 1, width: 480 }).then(setQr)
-  }, [joinUrl])
+  const [board, setBoard] = useState(null)
+  const [actionError, setActionError] = useState('')
 
   const room = state?.room
   const buzzes = state?.buzzes
+
+  useEffect(() => {
+    if (!room?.board_id) return
+    loadBoard(room.board_id)
+      .then(setBoard)
+      .catch((err) => setActionError(err.message))
+  }, [room?.board_id])
+
+  const questions = useMemo(() => {
+    const byId = new Map()
+    for (const category of board ?? []) {
+      for (const q of category.questions) byId.set(q.id, { ...q, category: category.name })
+    }
+    return byId
+  }, [board])
+  const question = room?.current_question_id ? questions.get(room.current_question_id) : null
+
   // Time ran out: the team's buzz is cancelled so they can buzz again.
   const timer = useAnswerTimer(room?.buzz_round, (index) => {
     const expired = buzzes?.[index]
@@ -42,37 +72,83 @@ export default function HostScreen({ code }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buzzes])
 
-  async function toggleBuzzers() {
-    if (!room) return
-    if (room.buzz_open) await closeBuzzers(room.id)
-    else await openBuzzers(room)
+  // The buzz being judged: the one on the clock, else the first still waiting.
+  const onClock = timer.current && buzzes?.[timer.current.index]
+  const judgeIndex =
+    onClock && waiting(onClock) ? timer.current.index : (buzzes?.findIndex(waiting) ?? -1)
+
+  // Next team in line after the one being timed (or the first, if nobody has
+  // been timed yet), skipping buzzes that timed out or were judged.
+  const nextAfter = (index) => buzzes?.findIndex((b, i) => i > index && waiting(b)) ?? -1
+  const nextIndex = nextAfter(timer.current ? timer.current.index : -1)
+
+  async function run(action) {
+    setActionError('')
+    try {
+      await action()
+    } catch (err) {
+      setActionError(err.message)
+    }
     refresh()
   }
 
-  // Next team in line after the one being timed (or the first, if nobody has
-  // been timed yet), skipping buzzes that already timed out.
-  const after = timer.current ? timer.current.index : -1
-  const nextIndex = buzzes?.findIndex((b, i) => i > after && !b.expired) ?? -1
-  const canTimeNext = nextIndex !== -1
+  const actions = {
+    toggleBuzzers: () =>
+      run(() => (room.buzz_open ? closeBuzzers(room.id) : openBuzzers(room))),
+    pick: (q) => run(() => showQuestion(room, q.id)),
+    reopen: (q) => {
+      if (window.confirm(`Reopen "${q.category}" for ${q.value}?`)) {
+        run(() => reopenQuestion(room.id, q.id))
+      }
+    },
+    correct: () => {
+      if (judgeIndex === -1) return
+      timer.stop()
+      run(() => judgeAnswer(buzzes[judgeIndex].id, true))
+    },
+    wrong: () => {
+      if (judgeIndex === -1) return
+      // The next team in line gets a turn straight away.
+      const next = nextAfter(judgeIndex)
+      if (next === -1) timer.stop()
+      else timer.start(next)
+      run(() => judgeAnswer(buzzes[judgeIndex].id, false))
+    },
+    reveal: () => {
+      timer.stop()
+      run(() => revealAnswer(room.id))
+    },
+    backToBoard: () => {
+      timer.stop()
+      run(() => backToBoard(room.id))
+    },
+    undo: () => run(() => undoLastScore(room.id)),
+    timeNext: () => nextIndex !== -1 && timer.start(nextIndex),
+  }
 
   useEffect(() => {
     function onKey(event) {
-      if (event.target.closest?.('input, textarea')) return
-      if (event.code === 'Space') toggleBuzzers()
-      else if (event.code === 'KeyS') timer.stop()
-      else if (event.code === 'KeyN' && canTimeNext) timer.start(nextIndex)
-      else return
+      if (!room || event.target.closest?.('input, textarea')) return
+      if (event.ctrlKey || event.metaKey || event.altKey) return
+      const inQuestion = room.phase === 'question'
+      const keys = {
+        Space: inQuestion && actions.toggleBuzzers,
+        KeyC: inQuestion && actions.correct,
+        KeyW: inQuestion && actions.wrong,
+        KeyA: inQuestion && actions.reveal,
+        KeyB: room.phase !== 'board' && actions.backToBoard,
+        KeyS: timer.stop,
+        KeyN: actions.timeNext,
+        KeyU: actions.undo,
+      }
+      const handler = keys[event.code]
+      if (!handler) return
       event.preventDefault()
+      handler()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   })
-
-  async function handleRemoveTeam(team) {
-    if (!window.confirm(`Remove team "${team.name}"? Its players will pick a new team.`)) return
-    await deleteTeam(team.id)
-    refresh()
-  }
 
   if (status === 'missing') {
     return (
@@ -86,107 +162,102 @@ export default function HostScreen({ code }) {
   }
   if (!state) return <div className="screen muted">{error || 'Loading…'}</div>
 
-  const { teams, players } = state
-  const firstTime = buzzes[0] && new Date(buzzes[0].buzzed_at).getTime()
+  const { teams } = state
+  const pickingTeam = teams.find((t) => t.id === room.picking_team_id)
 
   return (
     <div className="tv">
-      <aside className="tv-side">
-        <div className="join">
-          {qr && <img src={qr} alt="QR code to join" />}
-          <p className="muted">Join at {window.location.host}</p>
-          <p className="room-code">{code}</p>
-        </div>
-
-        <ul className="team-list">
-          {teams.map((team) => {
-            const members = players.filter((p) => p.team_id === team.id)
-            return (
-              <li key={team.id} style={{ '--team': teamColor(teams, team.id) }}>
-                <div className="team-row">
-                  <span className="team-name">{team.name}</span>
-                  <span className="team-score">{team.score}</span>
-                  <button
-                    type="button"
-                    className="remove"
-                    aria-label={`Remove ${team.name}`}
-                    onClick={() => handleRemoveTeam(team)}
-                  >
-                    ×
-                  </button>
-                </div>
-                <p className="muted small">
-                  {members.map((p) => p.name).join(', ') || 'No players yet'}
-                </p>
-              </li>
-            )
-          })}
-          {teams.length === 0 && <li className="muted">Waiting for teams to join…</li>}
-        </ul>
-      </aside>
+      <TeamSidebar code={code} state={state} refresh={refresh} />
 
       <main className="tv-main">
-        <div className={`buzz-state ${room.buzz_open ? 'open' : ''}`}>
-          {room.buzz_open ? 'Buzzers open!' : 'Buzzers closed'}
-        </div>
-
-        <ol className="buzz-order">
-          {buzzes.map((b, i) => {
-            const team = teams.find((t) => t.id === b.team_id)
-            const player = players.find((p) => p.user_id === b.user_id)
-            const gap = (new Date(b.buzzed_at).getTime() - firstTime) / 1000
-            const answering = timer.current?.index === i
-            // Place among buzzes that are still in line (timed-out ones don't count).
-            const place = b.expired ? '–' : buzzes.slice(0, i + 1).filter((x) => !x.expired).length
-            return (
-              <li
-                key={b.id}
-                className={answering ? `answering ${timer.current.status}` : b.expired ? 'timed-out' : ''}
-                style={{ '--team': teamColor(teams, b.team_id), '--progress': timer.progress }}
-              >
-                <span className="place">{place}</span>
-                <span className="who">
-                  <strong>{team?.name ?? 'Removed team'}</strong>
-                  <span className="muted">{player?.name}</span>
-                </span>
-                {answering ? (
-                  <span className="countdown">
-                    {timer.current.status === 'expired'
-                      ? "TIME'S UP"
-                      : Math.ceil(timer.remaining / 1000)}
-                  </span>
-                ) : b.expired ? (
-                  <span className="gap muted">Time's up</span>
-                ) : (
-                  <span className="gap muted">{i === 0 ? '' : `+${gap.toFixed(2)}s`}</span>
-                )}
-              </li>
-            )
-          })}
-        </ol>
+        {!room.board_id ? (
+          <p className="muted">This game has no board. Start a new game from the host page.</p>
+        ) : room.phase === 'board' || !question ? (
+          <>
+            <h2 className="tv-heading">
+              {pickingTeam ? (
+                <>
+                  <span style={{ color: teamColor(teams, pickingTeam.id) }}>{pickingTeam.name}</span>
+                  's pick
+                </>
+              ) : (
+                'Pick a question'
+              )}
+            </h2>
+            {board ? (
+              <BoardView
+                board={board}
+                played={state.played}
+                onPick={actions.pick}
+                onReopen={(q) => actions.reopen(questions.get(q.id))}
+              />
+            ) : (
+              <p className="muted">Loading board…</p>
+            )}
+          </>
+        ) : (
+          <QuestionView
+            question={question}
+            phase={room.phase}
+            state={state}
+            timer={timer}
+          />
+        )}
 
         <div className="host-controls">
-          <button type="button" className="primary big" onClick={toggleBuzzers}>
-            {room.buzz_open ? 'Close buzzers' : 'Open buzzers'}
+          {room.phase === 'question' && (
+            <>
+              <button type="button" className="primary big" onClick={actions.toggleBuzzers}>
+                {room.buzz_open ? 'Close buzzers' : 'Open buzzers'} (Space)
+              </button>
+              {judgeIndex !== -1 && (
+                <>
+                  <button type="button" className="judge correct" onClick={actions.correct}>
+                    ✓ Correct (C)
+                  </button>
+                  <button type="button" className="judge wrong" onClick={actions.wrong}>
+                    ✗ Wrong (W)
+                  </button>
+                </>
+              )}
+              {timer.current?.status === 'running' && (
+                <button type="button" className="secondary" onClick={timer.stop}>
+                  Stop timer (S)
+                </button>
+              )}
+              {nextIndex !== -1 && (
+                <button type="button" className="secondary" onClick={actions.timeNext}>
+                  {timer.current ? 'Next team' : 'Start timer'} (N)
+                </button>
+              )}
+              <button type="button" className="secondary" onClick={actions.reveal}>
+                Reveal answer (A)
+              </button>
+            </>
+          )}
+          {room.phase === 'answer' && (
+            <button type="button" className="primary big" onClick={actions.backToBoard}>
+              Back to board (B)
+            </button>
+          )}
+          <button type="button" className="secondary" onClick={actions.undo}>
+            Undo last score (U)
           </button>
-          <span className="muted small">or press Space</span>
-          {timer.current?.status === 'running' && (
-            <button type="button" className="secondary" onClick={timer.stop}>
-              Stop timer (S)
-            </button>
-          )}
-          {canTimeNext && (
-            <button type="button" className="secondary" onClick={() => timer.start(nextIndex)}>
-              {timer.current ? 'Next team' : 'Start timer'} (N)
-            </button>
-          )}
           <span className="answer-time">
             <span className="muted small">Answer time</span>
-            <button type="button" aria-label="Less time" onClick={() => timer.setSeconds(timer.seconds - 1)}>
+            <button
+              type="button"
+              aria-label="Less time"
+              onClick={() => timer.setSeconds(timer.seconds - 1)}
+            >
               −
             </button>
             <strong>{timer.seconds}s</strong>
-            <button type="button" aria-label="More time" onClick={() => timer.setSeconds(timer.seconds + 1)}>
+            <button
+              type="button"
+              aria-label="More time"
+              onClick={() => timer.setSeconds(timer.seconds + 1)}
+            >
               +
             </button>
           </span>
@@ -194,8 +265,43 @@ export default function HostScreen({ code }) {
             ← Games
           </button>
         </div>
-        {error && <p className="error">{error}</p>}
+        {(actionError || error) && <p className="error">{actionError || error}</p>}
       </main>
+    </div>
+  )
+}
+
+function QuestionView({ question, phase, state, timer }) {
+  const { room, buzzes } = state
+  const winner = buzzes.find((b) => b.result === 'correct')
+  const winnerTeam = winner && state.teams.find((t) => t.id === winner.team_id)
+
+  return (
+    <div className="question-view">
+      <p className="question-meta">
+        {question.category} · <strong>{question.value}</strong>
+      </p>
+      <p className={`question-prompt ${phase === 'answer' ? 'small' : ''}`}>{question.prompt}</p>
+      {question.image_url && <img className="question-image" src={question.image_url} alt="" />}
+
+      {phase === 'answer' ? (
+        <div className="answer-reveal">
+          <p className="answer-text">{question.answer}</p>
+          {winnerTeam ? (
+            <p style={{ color: teamColor(state.teams, winnerTeam.id) }}>
+              ✓ {winnerTeam.name} +{question.value}
+            </p>
+          ) : (
+            <p className="muted">Nobody got it</p>
+          )}
+        </div>
+      ) : (
+        <p className={`buzz-state small ${room.buzz_open ? 'open' : ''}`}>
+          {room.buzz_open ? 'Buzzers open!' : 'Buzzers closed'}
+        </p>
+      )}
+
+      <BuzzList state={state} timer={timer} value={question.value} />
     </div>
   )
 }
