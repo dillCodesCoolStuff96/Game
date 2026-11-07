@@ -1,4 +1,6 @@
 // Placeholder board for testing until the game editor exists (step 6).
+// Questions are [prompt, answer] for buzz-in questions, or objects for
+// all-play ones (kept in sync with migration 006, which updates older copies).
 export const sampleBoard = {
   title: 'Sample board',
   categories: [
@@ -7,7 +9,15 @@ export const sampleBoard = {
       questions: [
         ["What is the name of the Grinch's dog?", 'Max'],
         ["In 'Home Alone', what city does Kevin's family fly to without him?", 'Paris'],
-        ['Which 1946 film is set in the town of Bedford Falls?', "It's a Wonderful Life"],
+        {
+          prompt: 'Which movie has the line "You\'ll shoot your eye out!"?',
+          answer: 'A Christmas Story',
+          allplay: {
+            format: 'single',
+            seconds: 30,
+            items: [{ answer: 'A Christmas Story/Christmas Story' }],
+          },
+        },
         [
           "According to Buddy in 'Elf', what are the four main food groups?",
           'Candy, candy canes, candy corns and syrup',
@@ -24,7 +34,23 @@ export const sampleBoard = {
         ['What is the capital of Canada?', 'Ottawa'],
         ['What is the longest river in South America?', 'The Amazon'],
         ['What is the smallest country in the world by area?', 'Vatican City'],
-        ['Which country has the most natural lakes?', 'Canada'],
+        {
+          prompt: 'Name all seven continents.',
+          answer: 'Africa, Antarctica, Asia, Australia, Europe, North America, South America',
+          allplay: {
+            format: 'list',
+            seconds: 60,
+            items: [
+              { answer: 'Africa' },
+              { answer: 'Antarctica' },
+              { answer: 'Asia' },
+              { answer: 'Australia/Oceania' },
+              { answer: 'Europe' },
+              { answer: 'North America' },
+              { answer: 'South America' },
+            ],
+          },
+        },
         ['Which African country was formerly known as Abyssinia?', 'Ethiopia'],
       ],
     },
@@ -53,7 +79,20 @@ export const sampleBoard = {
       questions: [
         ["Who sang 'All I Want for Christmas Is You'?", 'Mariah Carey'],
         ['Which band was made up of John, Paul, George and Ringo?', 'The Beatles'],
-        ["Which singer is known as the 'King of Pop'?", 'Michael Jackson'],
+        {
+          prompt: 'Match each Christmas song to the singer who made it famous.',
+          answer: 'Wham!, Brenda Lee, José Feliciano, Elvis Presley',
+          allplay: {
+            format: 'blanks',
+            seconds: 60,
+            items: [
+              { label: 'Last Christmas', answer: 'Wham!/Wham/George Michael' },
+              { label: "Rockin' Around the Christmas Tree", answer: 'Brenda Lee' },
+              { label: 'Feliz Navidad', answer: 'José Feliciano' },
+              { label: 'Blue Christmas', answer: 'Elvis Presley/Elvis' },
+            ],
+          },
+        },
         ['Which instrument usually has 88 keys?', 'Piano'],
         ["Who wrote the song 'White Christmas'?", 'Irving Berlin'],
       ],

@@ -4,6 +4,7 @@ import { playBlip } from '../sounds.js'
 import { buzz, createTeam, setMyTeam } from '../storage.js'
 import { teamColor } from '../teamColors.js'
 import { useRoom } from '../useRoom.js'
+import AllPlayPhone from './AllPlayPhone.jsx'
 
 export default function PlayerScreen({ code, userId }) {
   const { status, state, error, refresh } = useRoom(code)
@@ -26,7 +27,12 @@ export default function PlayerScreen({ code, userId }) {
   if (!state) return <div className="screen muted">{error || 'Loading…'}</div>
 
   const props = { state, me, refresh }
-  return me.team_id ? <Buzzer {...props} /> : <TeamPicker {...props} />
+  if (!me.team_id) return <TeamPicker {...props} />
+  // All-play questions swap the buzzer for the team's answer sheet.
+  if (state.room.allplay && state.room.phase !== 'board') {
+    return <AllPlayPhone key={state.room.buzz_round} {...props} />
+  }
+  return <Buzzer {...props} />
 }
 
 function TeamPicker({ state, me, refresh }) {

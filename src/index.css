@@ -721,3 +721,234 @@ button:disabled {
   color: var(--accent);
   overflow-wrap: anywhere;
 }
+
+/* ---------- All-play ---------- */
+
+.allplay-badge {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.8em;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.allplay-labels {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 28px;
+  margin: 0;
+  padding: 0;
+  list-style-position: inside;
+  font-size: clamp(1.1rem, 2vw, 2rem);
+  font-weight: 700;
+}
+
+.allplay-clock {
+  font-size: clamp(3rem, 8vw, 8rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.allplay-clock.small {
+  font-size: 3rem;
+}
+
+.allplay-clock.urgent {
+  color: var(--danger);
+}
+
+.allplay-progress {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.allplay-progress li {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 18px;
+  border-left: 6px solid var(--team);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: clamp(1rem, 1.5vw, 1.4rem);
+}
+
+/* Grading: list answers in one column per team. */
+.allplay-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+}
+
+.allplay-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.allplay-team {
+  padding: 8px 12px;
+  border-left: 6px solid var(--team);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: clamp(1rem, 1.6vw, 1.6rem);
+  font-weight: 800;
+  text-align: left;
+}
+
+.allplay-count {
+  float: right;
+  color: var(--accent);
+}
+
+.allplay-answer {
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  text-align: left;
+  font-size: clamp(0.95rem, 1.4vw, 1.4rem);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.allplay-answer.right {
+  background: #14532d;
+  color: #dcfce7;
+}
+
+.allplay-answer.wrong {
+  background: #3f1d1d;
+  color: #fecaca;
+}
+
+.allplay-answer:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.allplay-answer.empty {
+  display: block;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+/* Grading: blanks/single as a table, one row per box. */
+.allplay-table {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.2fr) repeat(var(--columns), minmax(0, 1fr));
+  gap: 8px 12px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+}
+
+.allplay-key {
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(0.95rem, 1.4vw, 1.4rem);
+}
+
+/* Phone answer sheet. */
+.player.allplay-phone {
+  align-items: stretch;
+  gap: 14px;
+}
+
+.allplay-phone .allplay-badge {
+  align-self: center;
+  font-size: 0.9rem;
+}
+
+.allplay-phone .allplay-clock,
+.allplay-phone .caption {
+  margin: 0;
+  text-align: center;
+}
+
+.allplay-phone-prompt {
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.allplay-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.allplay-add {
+  display: flex;
+  gap: 8px;
+}
+
+.allplay-add .primary {
+  flex: none;
+}
+
+.allplay-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.allplay-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 6px 4px 14px;
+  border-radius: 10px;
+  background: var(--surface);
+  font-weight: 600;
+}
+
+.allplay-list li > span:first-child {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.allplay-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.allplay-box-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mark {
+  flex: none;
+  font-weight: 900;
+  font-size: 1.2rem;
+}
+
+.mark.right {
+  color: #4ade80;
+}
+
+.mark.wrong {
+  color: var(--danger);
+}

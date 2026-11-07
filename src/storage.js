@@ -49,7 +49,7 @@ export async function joinRoom(code, name) {
 
 export async function loadRoomState(roomId) {
   const room = unwrap(await supabase.from('rooms').select('*').eq('id', roomId).single())
-  const [teams, players, buzzes, played] = await Promise.all([
+  const [teams, players, buzzes, played, answers] = await Promise.all([
     supabase.from('teams').select('*').eq('room_id', roomId).order('created_at'),
     supabase.from('players').select('*').eq('room_id', roomId).order('joined_at'),
     supabase
@@ -59,6 +59,16 @@ export async function loadRoomState(roomId) {
       .eq('round', room.buzz_round)
       .order('id'),
     supabase.from('played_questions').select('question_id').eq('room_id', roomId),
+    // All-play answers for the question on screen (players only get their own team's).
+    room.allplay
+      ? supabase
+          .from('allplay_answers')
+          .select('*')
+          .eq('room_id', roomId)
+          .eq('round', room.buzz_round)
+          .eq('removed', false)
+          .order('id')
+      : { data: [] },
   ])
   return {
     room,
@@ -66,6 +76,7 @@ export async function loadRoomState(roomId) {
     players: unwrap(players),
     buzzes: unwrap(buzzes),
     played: new Set(unwrap(played).map((p) => p.question_id)),
+    answers: unwrap(answers),
   }
 }
 
@@ -73,7 +84,7 @@ export async function loadRoomState(roomId) {
 // (re)connect so a phone waking from sleep catches up.
 export function subscribeRoom(roomId, onChange) {
   const channel = supabase.channel(`room-${roomId}`)
-  for (const table of ['teams', 'players', 'buzzes', 'played_questions']) {
+  for (const table of ['teams', 'players', 'buzzes', 'played_questions', 'allplay_answers']) {
     channel.on(
       'postgres_changes',
       { event: '*', schema: 'public', table, filter: `room_id=eq.${roomId}` },
@@ -165,12 +176,19 @@ export async function ensureBoard() {
       .select('id, position'),
   )
   const questions = categories.flatMap((category) =>
-    sampleBoard.categories[category.position].questions.map(([prompt, answer], i) => ({
-      category_id: category.id,
-      value: (i + 1) * 100,
-      prompt,
-      answer,
-    })),
+    sampleBoard.categories[category.position].questions.map((question, i) => {
+      const { prompt, answer, allplay } = Array.isArray(question)
+        ? { prompt: question[0], answer: question[1] }
+        : question
+      return {
+        category_id: category.id,
+        value: (i + 1) * 100,
+        prompt,
+        answer,
+        kind: allplay ? 'allplay' : 'buzz',
+        allplay: allplay ?? null,
+      }
+    }),
   )
   unwrap(await supabase.from('questions').insert(questions))
   return board.id
@@ -181,7 +199,7 @@ export async function loadBoard(boardId) {
   const categories = unwrap(
     await supabase
       .from('categories')
-      .select('id, name, position, questions(id, value, prompt, answer, image_url)')
+      .select('id, name, position, questions(id, value, prompt, answer, image_url, kind, allplay)')
       .eq('board_id', boardId)
       .order('position'),
   )
@@ -191,16 +209,28 @@ export async function loadBoard(boardId) {
 
 // ---------- Playing questions (host) ----------
 
-// Shows a question with the buzzers closed and the last question's buzzes cleared.
-export async function showQuestion(room, questionId) {
+// Shows a question with the buzzers closed and the last question's buzzes
+// cleared. For all-play questions, players get the format and box labels
+// (never the answers).
+export async function showQuestion(room, question) {
+  const allplay = question.kind === 'allplay' && question.allplay
   unwrap(
     await supabase
       .from('rooms')
       .update({
         phase: 'question',
-        current_question_id: questionId,
+        current_question_id: question.id,
         buzz_open: false,
         buzz_round: room.buzz_round + 1,
+        allplay: allplay
+          ? {
+              format: allplay.format,
+              prompt: question.prompt,
+              labels: allplay.format === 'blanks' ? allplay.items.map((item) => item.label) : [],
+              seconds: allplay.seconds,
+            }
+          : null,
+        allplay_ends_at: null,
       })
       .eq('id', room.id),
   )
@@ -218,7 +248,13 @@ export async function backToBoard(roomId) {
   unwrap(
     await supabase
       .from('rooms')
-      .update({ phase: 'board', current_question_id: null, buzz_open: false })
+      .update({
+        phase: 'board',
+        current_question_id: null,
+        buzz_open: false,
+        allplay: null,
+        allplay_ends_at: null,
+      })
       .eq('id', roomId),
   )
 }
@@ -240,4 +276,36 @@ export async function undoLastScore(roomId) {
 // Add (or with a negative number, take away) points for a team by hand.
 export async function adjustScore(teamId, points) {
   unwrap(await supabase.rpc('adjust_score', { p_team_id: teamId, p_points: points }))
+}
+
+// ---------- All-play ----------
+
+// Host: start the countdown, or lock answers now with 0.
+export async function setAllPlayTimer(roomId, seconds) {
+  unwrap(await supabase.rpc('set_allplay_timer', { p_room_id: roomId, p_seconds: seconds }))
+}
+
+// Host: save the grading and give the winners the square's value.
+export async function awardAllPlay(roomId, winnerTeamIds, correctAnswerIds) {
+  unwrap(
+    await supabase.rpc('award_allplay', {
+      p_room_id: roomId,
+      p_team_ids: winnerTeamIds,
+      p_correct_ids: correctAnswerIds,
+    }),
+  )
+}
+
+// Players: add to / remove from the team's list.
+export async function addAllPlayAnswer(roomId, text) {
+  unwrap(await supabase.rpc('allplay_add', { p_room_id: roomId, p_text: text }))
+}
+
+export async function removeAllPlayAnswer(answerId) {
+  unwrap(await supabase.rpc('allplay_remove', { p_answer_id: answerId }))
+}
+
+// Players: fill in one box (blanks/single).
+export async function setAllPlayAnswer(roomId, slot, text) {
+  unwrap(await supabase.rpc('allplay_set', { p_room_id: roomId, p_slot: slot, p_text: text }))
 }

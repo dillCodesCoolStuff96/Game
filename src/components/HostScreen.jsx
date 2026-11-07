@@ -16,6 +16,7 @@ import {
 import { teamColor } from '../teamColors.js'
 import { useAnswerTimer } from '../useAnswerTimer.js'
 import { useRoom } from '../useRoom.js'
+import AllPlayHost from './AllPlayHost.jsx'
 import BoardView from './BoardView.jsx'
 import BuzzList from './BuzzList.jsx'
 import TeamSidebar from './TeamSidebar.jsx'
@@ -49,6 +50,7 @@ export default function HostScreen({ code }) {
     return byId
   }, [board])
   const question = room?.current_question_id ? questions.get(room.current_question_id) : null
+  const isAllPlay = room?.phase !== 'board' && question?.kind === 'allplay'
 
   // When time runs out the alarm plays and the team stays on the clock until
   // the host picks Correct, Wrong or Next team.
@@ -97,7 +99,7 @@ export default function HostScreen({ code }) {
   const actions = {
     toggleBuzzers: () =>
       run(() => (room.buzz_open ? closeBuzzers(room.id) : openBuzzers(room))),
-    pick: (q) => run(() => showQuestion(room, q.id)),
+    pick: (q) => run(() => showQuestion(room, q)),
     reopen: (q) => {
       if (window.confirm(`Reopen "${q.category}" for ${q.value}?`)) {
         run(() => reopenQuestion(room.id, q.id))
@@ -137,7 +139,8 @@ export default function HostScreen({ code }) {
     function onKey(event) {
       if (!room || event.target.closest?.('input, textarea')) return
       if (event.ctrlKey || event.metaKey || event.altKey) return
-      const inQuestion = room.phase === 'question'
+      // All-play questions handle their own keys (see AllPlayHost).
+      const inQuestion = room.phase === 'question' && !isAllPlay
       const keys = {
         Space: inQuestion && actions.toggleBuzzers,
         KeyC: inQuestion && actions.correct,
@@ -202,6 +205,30 @@ export default function HostScreen({ code }) {
               <p className="muted">Loading board…</p>
             )}
           </>
+        ) : isAllPlay ? (
+          <AllPlayHost
+            key={room.buzz_round}
+            question={question}
+            state={state}
+            run={run}
+            controls={
+              <>
+                <button
+                  type="button"
+                  className={room.phase === 'answer' ? 'primary big' : 'secondary'}
+                  onClick={actions.backToBoard}
+                >
+                  Back to board (B)
+                </button>
+                <button type="button" className="secondary" onClick={actions.undo}>
+                  Undo last score (U)
+                </button>
+                <button type="button" className="link" onClick={() => navigate('?host')}>
+                  ← Games
+                </button>
+              </>
+            }
+          />
         ) : (
           <QuestionView
             question={question}
@@ -211,71 +238,73 @@ export default function HostScreen({ code }) {
           />
         )}
 
-        <div className="host-controls">
-          {room.phase === 'question' && (
-            <>
-              <button type="button" className="primary big" onClick={actions.toggleBuzzers}>
-                {room.buzz_open ? 'Close buzzers' : 'Open buzzers'} (Space)
-              </button>
-              {judgeIndex !== -1 && (
-                <>
-                  <button type="button" className="judge correct" onClick={actions.correct}>
-                    ✓ Correct (C)
-                  </button>
-                  <button type="button" className="judge wrong" onClick={actions.wrong}>
-                    ✗ Wrong (W)
-                  </button>
-                </>
-              )}
-              {timer.current?.status === 'running' && (
-                <button type="button" className="secondary" onClick={timer.stop}>
-                  Stop timer (S)
+        {!isAllPlay && (
+          <div className="host-controls">
+            {room.phase === 'question' && (
+              <>
+                <button type="button" className="primary big" onClick={actions.toggleBuzzers}>
+                  {room.buzz_open ? 'Close buzzers' : 'Open buzzers'} (Space)
                 </button>
-              )}
-              {(nextIndex !== -1 || (onClock && waiting(onClock))) && (
-                <button type="button" className="secondary" onClick={actions.timeNext}>
-                  {timer.current ? 'Next team' : 'Start timer'} (N)
+                {judgeIndex !== -1 && (
+                  <>
+                    <button type="button" className="judge correct" onClick={actions.correct}>
+                      ✓ Correct (C)
+                    </button>
+                    <button type="button" className="judge wrong" onClick={actions.wrong}>
+                      ✗ Wrong (W)
+                    </button>
+                  </>
+                )}
+                {timer.current?.status === 'running' && (
+                  <button type="button" className="secondary" onClick={timer.stop}>
+                    Stop timer (S)
+                  </button>
+                )}
+                {(nextIndex !== -1 || (onClock && waiting(onClock))) && (
+                  <button type="button" className="secondary" onClick={actions.timeNext}>
+                    {timer.current ? 'Next team' : 'Start timer'} (N)
+                  </button>
+                )}
+                <button type="button" className="secondary" onClick={actions.reveal}>
+                  Reveal answer (A)
                 </button>
-              )}
-              <button type="button" className="secondary" onClick={actions.reveal}>
-                Reveal answer (A)
-              </button>
-              {/* Leaves the question unplayed, e.g. after picking the wrong square. */}
-              <button type="button" className="secondary" onClick={actions.backToBoard}>
+                {/* Leaves the question unplayed, e.g. after picking the wrong square. */}
+                <button type="button" className="secondary" onClick={actions.backToBoard}>
+                  Back to board (B)
+                </button>
+              </>
+            )}
+            {room.phase === 'answer' && (
+              <button type="button" className="primary big" onClick={actions.backToBoard}>
                 Back to board (B)
               </button>
-            </>
-          )}
-          {room.phase === 'answer' && (
-            <button type="button" className="primary big" onClick={actions.backToBoard}>
-              Back to board (B)
+            )}
+            <button type="button" className="secondary" onClick={actions.undo}>
+              Undo last score (U)
             </button>
-          )}
-          <button type="button" className="secondary" onClick={actions.undo}>
-            Undo last score (U)
-          </button>
-          <span className="answer-time">
-            <span className="muted small">Answer time</span>
-            <button
-              type="button"
-              aria-label="Less time"
-              onClick={() => timer.setSeconds(timer.seconds - 1)}
-            >
-              −
+            <span className="answer-time">
+              <span className="muted small">Answer time</span>
+              <button
+                type="button"
+                aria-label="Less time"
+                onClick={() => timer.setSeconds(timer.seconds - 1)}
+              >
+                −
+              </button>
+              <strong>{timer.seconds}s</strong>
+              <button
+                type="button"
+                aria-label="More time"
+                onClick={() => timer.setSeconds(timer.seconds + 1)}
+              >
+                +
+              </button>
+            </span>
+            <button type="button" className="link" onClick={() => navigate('?host')}>
+              ← Games
             </button>
-            <strong>{timer.seconds}s</strong>
-            <button
-              type="button"
-              aria-label="More time"
-              onClick={() => timer.setSeconds(timer.seconds + 1)}
-            >
-              +
-            </button>
-          </span>
-          <button type="button" className="link" onClick={() => navigate('?host')}>
-            ← Games
-          </button>
-        </div>
+          </div>
+        )}
         {(actionError || error) && <p className="error">{actionError || error}</p>}
       </main>
     </div>
