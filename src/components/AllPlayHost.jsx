@@ -74,6 +74,13 @@ export default function AllPlayHost({ question, state, run, controls }) {
   })
 
   const winnerIds = room.allplay?.winners ?? []
+  // Ties split the value evenly, rounded down (matches award_allplay).
+  const share = (count) => Math.floor(question.value / Math.max(count, 1))
+  const winnerNames = graded.winners.map((t) => t.name).join(' & ')
+  const awardLabel =
+    graded.winners.length > 1
+      ? `Split ${question.value}: ${share(graded.winners.length)} each to ${winnerNames} (Enter)`
+      : `Award ${question.value} to ${winnerNames} (Enter)`
   const showGrading = stage === 'locked' || stage === 'results'
   const results = stage === 'results' ? { counts: counts, winners } : graded
 
@@ -95,7 +102,7 @@ export default function AllPlayHost({ question, state, run, controls }) {
                 .filter((t) => winnerIds.includes(t.id))
                 .map((t) => (
                   <p key={t.id} style={{ color: teamColor(teams, t.id) }}>
-                    ✓ {t.name} +{question.value}
+                    ✓ {t.name} +{share(winnerIds.length)}
                   </p>
                 ))
             ) : (
@@ -178,7 +185,7 @@ export default function AllPlayHost({ question, state, run, controls }) {
             <span className="muted small">Tap answers to mark ✓ / ✗</span>
             <button type="button" className="primary big" onClick={award}>
               {graded.winners.length
-                ? `Award ${question.value} to ${graded.winners.map((t) => t.name).join(' & ')} (Enter)`
+                ? awardLabel
                 : 'Nobody scored — show answer (Enter)'}
             </button>
           </>
