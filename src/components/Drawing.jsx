@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { allPlayStage, useNow } from '../allplay.js'
+import { drawingPrompt } from '../drawing.js'
 import { playAlarm, playBlip, playBuzzer } from '../sounds.js'
 import { awardAllPlay, judgeDrawings, setAllPlayTimer, submitDrawing } from '../storage.js'
 import { teamColor } from '../teamColors.js'
@@ -103,6 +104,9 @@ export default function DrawingHost({ question, state, run, controls }) {
         <p className={`question-prompt ${stage === 'ready' || stage === 'answering' ? '' : 'small'}`}>
           {question.prompt}
         </p>
+        {room.allplay.assignments && (stage === 'ready' || stage === 'answering') && (
+          <p className="muted">Each team has a secret prompt on their phone 🤫</p>
+        )}
 
         {stage === 'ready' && (
           <p className="muted">Grab paper and a pen. Each team picks one artist!</p>
@@ -143,6 +147,9 @@ export default function DrawingHost({ question, state, run, controls }) {
                   >
                     <img src={d.image_url} alt={`${team?.name}'s drawing`} />
                     <span className="drawing-team">{team?.name}</span>
+                    {room.allplay.assignments && (
+                      <span className="drawing-prompt">“{drawingPrompt(room.allplay, d.team_id)}”</span>
+                    )}
                     {judged && shown && d.score != null ? (
                       <span className="drawing-verdict">
                         <strong>{d.score}/10</strong>
@@ -249,7 +256,8 @@ export function DrawingPhone({ state, me, refresh }) {
         <span className="team-score">{team?.score} pts</span>
       </header>
       <p className="allplay-badge">AI drawing</p>
-      <p className="allplay-phone-prompt">{room.allplay.prompt}</p>
+      {room.allplay.assignments?.[me.team_id] && <p className="muted small secret-label">Your secret prompt</p>}
+      <p className="allplay-phone-prompt">{drawingPrompt(room.allplay, me.team_id)}</p>
 
       {stage === 'ready' && <p className="caption">Get paper ready and pick one artist!</p>}
       {stage === 'answering' && (

@@ -1544,3 +1544,16 @@ input[type='file'] {
   font-size: 3rem;
   color: var(--accent);
 }
+
+.drawing-prompt {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.drawing-verdict span {
+  line-height: 1.35;
+}
+
+.secret-label {
+  text-align: center;
+}

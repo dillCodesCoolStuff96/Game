@@ -9,13 +9,17 @@ export const config = { maxDuration: 60 }
 
 const anthropic = new Anthropic()
 
-const SYSTEM = `You are the judge of a drawing contest at a family Christmas party.
-Each team had a few minutes to draw a prompt on paper with whatever pens were around, then
-took a photo of it. Judge every drawing on how well it captures the prompt, creativity,
-effort and how funny it is. These are amateurs, so judge them against each other, not
-against professional art, and use the whole 1-10 range so there is a clear winner.
-For each drawing write one short, playful roast or compliment (under 20 words) that the
-room will enjoy hearing read aloud on the TV. Keep it kind and family-friendly.`
+const SYSTEM = `You are the judge of a drawing contest at a Christmas party, and you play a savage,
+sarcastic art critic. Each team drew a prompt on paper in a few minutes and photographed it.
+Teams may have different prompts; judge each drawing against its own prompt.
+
+Score harshly and use the whole range. Most quick party drawings deserve 3-6. Give 7 for a
+clearly good, on-prompt drawing, 8+ only for something genuinely impressive, and 1-2 when
+the prompt is unrecognisable. Avoid ties unless two drawings really are equal.
+
+For each drawing write 2-3 sentences that will be read out on the TV: what you actually see,
+how well (or badly) it matches the prompt, then a mean, funny roast. Roast the drawing, not
+the people who made it: nothing hateful, crude, sexual, or about anyone's looks or identity.`
 
 const VERDICT_SCHEMA = {
   type: 'object',
@@ -27,7 +31,10 @@ const VERDICT_SCHEMA = {
         properties: {
           drawing: { type: 'integer', description: 'The drawing number from the labels' },
           score: { type: 'integer', description: 'Score from 1 to 10' },
-          comment: { type: 'string' },
+          comment: {
+            type: 'string',
+            description: '2-3 sentences: what you see, how it matches its prompt, then the roast',
+          },
         },
         required: ['drawing', 'score', 'comment'],
         additionalProperties: false,
@@ -80,10 +87,14 @@ export default async function handler(req, res) {
   if (drawingsError) return res.status(500).json({ error: drawingsError.message })
   if (!drawings.length) return res.status(400).json({ error: 'No drawings were submitted' })
 
+  // Each team's own prompt (secret prompts), else the question's prompt.
+  const promptFor = (teamId) => room.allplay?.assignments?.[teamId] ?? question.prompt
   const content = [
-    { type: 'text', text: `The prompt was: "${question.prompt}"` },
     ...drawings.flatMap((d, i) => [
-      { type: 'text', text: `Drawing ${i + 1} (team "${d.teams?.name ?? 'Unknown'}"):` },
+      {
+        type: 'text',
+        text: `Drawing ${i + 1} (team "${d.teams?.name ?? 'Unknown'}"), prompt: "${promptFor(d.team_id)}"`,
+      },
       { type: 'image', source: { type: 'url', url: d.image_url } },
     ]),
     { type: 'text', text: 'Score every drawing.' },

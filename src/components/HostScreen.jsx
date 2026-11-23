@@ -114,7 +114,7 @@ export default function HostScreen({ code }) {
   const actions = {
     toggleBuzzers: () =>
       run(() => (room.buzz_open ? closeBuzzers(room.id) : openBuzzers(room))),
-    pick: (q) => run(() => showQuestion(room, q)),
+    pick: (q) => run(() => showQuestion(room, q, state.teams)),
     reopen: (q) => {
       if (window.confirm(`Reopen "${q.category}" for ${q.value}?`)) {
         run(() => reopenQuestion(room.id, q.id))

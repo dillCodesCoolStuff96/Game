@@ -1,4 +1,5 @@
 // All database access lives here, so swapping storage only touches this file.
+import { assignPrompts } from './drawing.js'
 import { sampleBoard } from './sampleBoard.js'
 import { supabase } from './supabase.js'
 
@@ -228,7 +229,7 @@ export async function loadBoard(boardId) {
 // Shows a question with the buzzers closed and the last question's buzzes
 // cleared. For all-play and drawing questions, players get the format and box
 // labels (never the answers).
-export async function showQuestion(room, question) {
+export async function showQuestion(room, question, teams = []) {
   let allplay = null
   if (question.kind === 'allplay' && question.allplay) {
     allplay = {
@@ -239,7 +240,14 @@ export async function showQuestion(room, question) {
       seconds: question.allplay.seconds,
     }
   } else if (question.kind === 'drawing') {
-    allplay = { format: 'drawing', prompt: question.prompt, seconds: question.allplay?.seconds ?? 180 }
+    const prompts = question.allplay?.prompts ?? []
+    allplay = {
+      format: 'drawing',
+      prompt: question.prompt,
+      seconds: question.allplay?.seconds ?? 180,
+      // Each team's secret prompt, when the question has a list of them.
+      assignments: prompts.length ? assignPrompts(prompts, teams) : null,
+    }
   }
   unwrap(
     await supabase

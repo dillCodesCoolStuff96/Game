@@ -93,6 +93,7 @@ function QuestionForm({ question, category, onDone }) {
   const [spotdiff, setSpotdiff] = useState(question.spotdiff)
   const [drawing, setDrawing] = useState(question.kind === 'drawing')
   const [drawSeconds, setDrawSeconds] = useState(question.allplay?.seconds ?? 180)
+  const [drawPrompts, setDrawPrompts] = useState((question.allplay?.prompts ?? []).join('\n'))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -140,7 +141,13 @@ function QuestionForm({ question, category, onDone }) {
               prompt,
               answer: answer || 'Judged by the AI',
               kind: 'drawing',
-              allplay: { seconds: drawSeconds },
+              allplay: {
+                seconds: drawSeconds,
+                prompts: drawPrompts
+                  .split('\n')
+                  .map((line) => line.trim())
+                  .filter(Boolean),
+              },
               spotdiff: null,
             }
           : { prompt, answer, kind: 'buzz', allplay: null, spotdiff },
@@ -195,16 +202,37 @@ function QuestionForm({ question, category, onDone }) {
 
       <label className="field">
         <span>
-          {drawing ? 'What to draw' : spotdiff ? 'Text shown above the pictures' : 'Question'}
+          {drawing
+            ? 'Title on the TV (or the one prompt for everyone)'
+            : spotdiff
+              ? 'Text shown above the pictures'
+              : 'Question'}
         </span>
         <textarea
           rows={2}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder={drawing ? 'Draw Santa on summer vacation' : spotdiff ? 'Spot the 4 differences!' : ''}
+          placeholder={
+            drawing ? 'Secret drawing challenge!' : spotdiff ? 'Spot the 4 differences!' : ''
+          }
           required
         />
       </label>
+
+      {drawing && (
+        <label className="field">
+          <span>Secret prompts, one per line (each team gets a different one)</span>
+          <textarea
+            rows={5}
+            value={drawPrompts}
+            onChange={(e) => setDrawPrompts(e.target.value)}
+            placeholder={'Santa on summer vacation\nA reindeer at the gym\nThe Grinch doing his taxes'}
+          />
+          <span className="muted small">
+            Leave empty to give every team the title above as their prompt.
+          </span>
+        </label>
+      )}
 
       {drawing && (
         <label className="field">

@@ -1,7 +1,7 @@
 // Placeholder board for testing until the game editor exists (step 6).
 // Questions are [prompt, answer] for buzz-in questions, or objects for
 // all-play, spot-the-difference and drawing ones (kept in sync with
-// migrations 006, 008 and 012, which update older copies).
+// migrations 006, 008, 012 and 013, which update older copies).
 export const sampleBoard = {
   title: 'Sample board',
   // Bonus game decks (kept in sync with migration 010).
@@ -53,9 +53,18 @@ export const sampleBoard = {
         ],
         {
           kind: 'drawing',
-          prompt: 'Draw Santa on summer vacation',
+          prompt: 'Secret drawing challenge!',
           answer: 'Judged by the AI',
-          allplay: { seconds: 180 },
+          allplay: {
+            seconds: 180,
+            prompts: [
+              'Santa on summer vacation',
+              'A reindeer at the gym',
+              'The Grinch doing his taxes',
+              'A snowman in a heat wave',
+              'Elves on strike',
+            ],
+          },
         },
       ],
     },
