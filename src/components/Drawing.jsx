@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { allPlayStage, useNow } from '../allplay.js'
-import { drawingPrompt } from '../drawing.js'
+import { dealMissingPrompts, drawingPrompt } from '../drawing.js'
 import { playAlarm, playBlip, playBuzzer } from '../sounds.js'
-import { awardAllPlay, judgeDrawings, setAllPlayTimer, submitDrawing } from '../storage.js'
+import {
+  awardAllPlay,
+  judgeDrawings,
+  setAllPlayTimer,
+  setDrawingAssignments,
+  submitDrawing,
+} from '../storage.js'
 import { teamColor } from '../teamColors.js'
 
 const REVEAL_MS = 2800
@@ -43,6 +49,22 @@ export default function DrawingHost({ question, state, run, controls }) {
   const [chosen, setChosen] = useState(null)
   const winners = chosen ?? topScorers(drawings)
   const share = Math.floor(question.value / Math.max(winners.length, 1))
+
+  // Deal secret prompts to teams that joined after the square opened.
+  // Remembers what this TV already dealt, so a slow save followed by a quick
+  // refresh can never deal a team a second, different prompt.
+  const prompts = question.allplay?.prompts
+  const dealtRef = useRef({})
+  useEffect(() => {
+    if (!prompts?.length || (stage !== 'ready' && stage !== 'answering')) return
+    const known = { ...room.allplay.assignments, ...dealtRef.current }
+    const dealt = dealMissingPrompts(prompts, known, teams)
+    if (!dealt) return
+    dealtRef.current = dealt
+    run(() => setDrawingAssignments(room, dealt))
+    // Only re-check when the teams or the dealt prompts change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teams, room.allplay.assignments, stage])
 
   // Alarm when time runs out.
   const lastStage = useRef(stage)

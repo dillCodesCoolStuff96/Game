@@ -477,3 +477,13 @@ export async function judgeDrawings(roomId) {
   if (!response.ok) throw new Error(body.error ?? 'The AI judge could not be reached')
   return body.verdicts
 }
+
+// Host: give late-joining teams their secret drawing prompts.
+export async function setDrawingAssignments(room, assignments) {
+  unwrap(
+    await supabase
+      .from('rooms')
+      .update({ allplay: { ...room.allplay, assignments } })
+      .eq('id', room.id),
+  )
+}
