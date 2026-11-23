@@ -15,7 +15,6 @@ The Red Viper = Oberyn Martell
 The Knight of Flowers = Loras Tyrell
 The Mad King = Aerys Targaryen
 The Old Lion = Tywin Lannister
-Lord Snow = Jon Snow
 The White Wolf = Jon Snow
 The Three-Eyed Raven = Bran Stark
 Reek = Theon Greyjoy
