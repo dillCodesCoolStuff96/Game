@@ -17,6 +17,7 @@
 ## Later
 - [ ] Sound overhaul: swap generated beeps for real game-show sound effects (free CC0 packs, Dillon vetoes on a test page). Moments: buzz-in, correct / wrong, time's up, wheel spinning + clicking, wheel landing, bonus game music, bonus room (tile flips + prize won fanfare)
 - [ ] Record Dillon's own voice clips for moments (maybe an in-app recorder in Set up questions: pick a moment, record, play it back)
+- [ ] Soundboard: a grid of sound bites (Dillon's voice + effects) on the admin phone; tap one and it plays on the TV speakers, any time during the game
 - [ ] Maybe show the answer countdown on phones too
 - [x] Admin screen on the host's phone showing the answer (?admin=CODE)
 - [x] Host can adjust any team's score at any time (on the TV sidebar)
