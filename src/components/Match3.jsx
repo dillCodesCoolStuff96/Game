@@ -31,14 +31,17 @@ function Match3Board({ match3, onPick }) {
 
       <div className="match3-grid">
         {Array.from({ length: match3.tiles }, (_, tile) => {
-          const symbol = revealed.get(tile)
+          // After a win the server sends the whole layout: unpicked tiles flip
+          // over too (dimmed) so everyone sees what they missed.
+          const picked = revealed.has(tile)
+          const symbol = picked ? revealed.get(tile) : done ? match3.layout?.[tile] : undefined
           const shown = symbol != null
           const canPick = Boolean(onPick) && !shown && !done
           return (
             <button
               key={tile}
               type="button"
-              className={`match3-tile ${shown ? 'flipped' : ''} ${done && symbol === match3.winner ? 'won' : ''}`}
+              className={`match3-tile ${shown ? 'flipped' : ''} ${shown && !picked ? 'missed' : ''} ${picked && done && symbol === match3.winner ? 'won' : ''}`}
               disabled={!canPick}
               onClick={() => canPick && onPick(tile)}
               aria-label={shown ? match3.symbols[symbol].emoji : `Tile ${tile + 1}`}
