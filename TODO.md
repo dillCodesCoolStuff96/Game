@@ -3,7 +3,7 @@
 ## Build plan (party: Dec 19)
 - [x] 1. Room, teams and buzzer
 - [x] Answer timer after a buzz, with a time's-up alarm
-- [ ] 2. Board and scoring
+- [x] 2. Board and scoring
 - [x] 3. All-play answers from phones, host grading (list / blanks / single formats)
 - [x] 4a. Spot-the-difference questions (buzz-in, circles on reveal, setup screen)
 - [ ] 4b. Name-that-song questions
