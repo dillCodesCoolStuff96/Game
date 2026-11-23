@@ -487,3 +487,28 @@ export async function setDrawingAssignments(room, assignments) {
       .eq('id', room.id),
   )
 }
+
+// ---------- Bonus room (match 3) ----------
+
+// The board's bonus room setup: { symbols: [{ emoji, points, count }] }.
+export async function loadMatch3(boardId) {
+  return unwrap(await supabase.from('boards').select('match3').eq('id', boardId).single()).match3
+}
+
+export async function saveMatch3(boardId, match3) {
+  unwrap(await supabase.from('boards').update({ match3 }).eq('id', boardId))
+}
+
+// Host: open the bonus room for a team (the server shuffles the tiles).
+export async function startMatch3(roomId, teamId) {
+  unwrap(await supabase.rpc('start_match3', { p_room_id: roomId, p_team_id: teamId }))
+}
+
+// The team (or host) flips a tile.
+export async function pickMatch3Tile(roomId, tile) {
+  unwrap(await supabase.rpc('match3_pick', { p_room_id: roomId, p_tile: tile }))
+}
+
+export async function closeMatch3(roomId) {
+  unwrap(await supabase.rpc('close_match3', { p_room_id: roomId }))
+}

@@ -11,7 +11,7 @@
 - [x] 5b. Bonus game: rapid fire with point trade (decks per category, text or picture items)
 - [ ] Bonus: pick category / difficulty (maybe a second wheel) instead of random
 - [x] AI-judged drawing questions (paper drawings photographed on phones, judged by Claude)
-- [ ] Match-3 bonus room (pick tiles, first symbol to 3 wins its prize)
+- [x] Bonus room wheel slice: 20 hidden tiles, first symbol to 3 wins its prize (rarer = bigger)
 - [ ] 6. Game editor (build boards and questions in the app)
 
 ## Later

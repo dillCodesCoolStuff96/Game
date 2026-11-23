@@ -21,6 +21,7 @@ import { useAnswerTimer } from '../useAnswerTimer.js'
 import { useRoom } from '../useRoom.js'
 import AllPlayHost from './AllPlayHost.jsx'
 import { BonusTV } from './Bonus.jsx'
+import { Match3TV } from './Match3.jsx'
 import BoardView from './BoardView.jsx'
 import DrawingHost from './Drawing.jsx'
 import BuzzList from './BuzzList.jsx'
@@ -134,7 +135,7 @@ export default function HostScreen({ code }) {
     },
     // Wheel on demand, for the team that last answered right.
     wheel: () => {
-      if (room.wheel || room.bonus || !room.picking_team_id || !wheelSetup?.slices.length) return
+      if (room.wheel || room.bonus || room.match3 || !room.picking_team_id || !wheelSetup?.slices.length) return
       run(() => startWheel(room.id, room.picking_team_id))
     },
     // Penalty only; the host presses Next team to put the next team on the clock.
@@ -166,7 +167,7 @@ export default function HostScreen({ code }) {
     function onKey(event) {
       if (!room || event.target.closest?.('input, textarea')) return
       // The wheel and bonus game have their own keys.
-      if (room.wheel || room.bonus) return
+      if (room.wheel || room.bonus || room.match3) return
       if (event.ctrlKey || event.metaKey || event.altKey) return
       // All-play questions handle their own keys (see AllPlayHost).
       const inQuestion = room.phase === 'question' && !isAllPlay
@@ -204,7 +205,7 @@ export default function HostScreen({ code }) {
 
   const { teams } = state
   const pickingTeam = teams.find((t) => t.id === room.picking_team_id)
-  const wheelButton = pickingTeam && !room.wheel && !room.bonus && (
+  const wheelButton = pickingTeam && !room.wheel && !room.bonus && !room.match3 && (
     <button type="button" className="secondary" onClick={actions.wheel}>
       Spin the wheel for {pickingTeam.name} (H)
     </button>
@@ -362,6 +363,7 @@ export default function HostScreen({ code }) {
           <WheelTV room={room} teams={teams} slices={wheelSetup.slices} run={run} />
         )}
         {room.bonus && <BonusTV room={room} teams={teams} decks={bonusDecks} run={run} />}
+        {room.match3 && <Match3TV room={room} teams={teams} run={run} />}
       </main>
     </div>
   )

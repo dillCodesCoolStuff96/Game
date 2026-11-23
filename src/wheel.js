@@ -8,6 +8,7 @@ export const sliceTypes = {
   lose: { name: 'Lose points', hasAmount: true, label: (s) => `−${s.amount}` },
   lose_half: { name: 'Lose half', label: () => 'Lose half' },
   bonus: { name: 'Bonus game', label: () => 'Bonus game' },
+  bonus_room: { name: 'Bonus room', label: () => 'Bonus room' },
 }
 
 export const sliceLabel = (slice) => sliceTypes[slice.type]?.label(slice) ?? '?'
@@ -21,6 +22,7 @@ const sliceColors = {
   lose: ['#dc2626', '#991b1b'],
   lose_half: ['#7f1d1d', '#7f1d1d'],
   bonus: ['#0891b2', '#0891b2'],
+  bonus_room: ['#db2777', '#db2777'],
 }
 
 export function sliceColor(slice, index) {
@@ -41,5 +43,6 @@ export const defaultWheel = {
     { type: 'lose_half' },
     { type: 'bonus' },
     { type: 'points', amount: 100 },
+    { type: 'bonus_room' },
   ],
 }

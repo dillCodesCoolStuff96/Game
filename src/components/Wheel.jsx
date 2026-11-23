@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { playBuzzer, playDing } from '../sounds.js'
-import { closeWheel, resolveWheel, spinWheel, startBonus, wheelSteal } from '../storage.js'
+import {
+  closeWheel,
+  resolveWheel,
+  spinWheel,
+  startBonus,
+  startMatch3,
+  wheelSteal,
+} from '../storage.js'
 import { teamColor } from '../teamColors.js'
 import { sliceColor, sliceLabel } from '../wheel.js'
 
@@ -98,11 +105,12 @@ export function WheelTV({ room, teams, slices, run }) {
     if (wheel.status === 'ready') playBuzzer()
   }, [wheel.status])
 
-  const finished = wheel.status === 'done' || wheel.status === 'bonus'
+  const finished = ['done', 'bonus', 'bonus_room'].includes(wheel.status)
   // After the Bonus slice, continuing offers the team a bonus game.
   const finish = () =>
     run(async () => {
       if (wheel.status === 'bonus') await startBonus(room.id, wheel.team_id)
+      if (wheel.status === 'bonus_room') await startMatch3(room.id, wheel.team_id)
       await closeWheel(room.id)
     })
 
@@ -151,7 +159,12 @@ export function WheelTV({ room, teams, slices, run }) {
             ))}
         {finished && (
           <button type="button" className="primary big" onClick={finish}>
-            {wheel.status === 'bonus' ? 'Play the bonus game' : 'Continue'} (Enter)
+            {wheel.status === 'bonus'
+              ? 'Play the bonus game'
+              : wheel.status === 'bonus_room'
+                ? 'Enter the bonus room'
+                : 'Continue'}{' '}
+            (Enter)
           </button>
         )}
         {!finished && (

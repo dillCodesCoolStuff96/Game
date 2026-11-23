@@ -3,6 +3,7 @@ import { navigate } from '../nav.js'
 import { ensureBoard, loadBoard, updateQuestion, uploadQuestionImage } from '../storage.js'
 import BoardView from './BoardView.jsx'
 import BonusEditor from './BonusEditor.jsx'
+import Match3Editor from './Match3Editor.jsx'
 import SpotDiffImages from './SpotDiffImages.jsx'
 import WheelEditor from './WheelEditor.jsx'
 
@@ -79,6 +80,7 @@ export default function BoardEditor() {
           />
           {boardId && <WheelEditor boardId={boardId} />}
           {boardId && <BonusEditor boardId={boardId} />}
+          {boardId && <Match3Editor boardId={boardId} />}
         </>
       ) : (
         <p className="muted">Loading board…</p>
