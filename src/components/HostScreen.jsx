@@ -22,6 +22,7 @@ import { useRoom } from '../useRoom.js'
 import AllPlayHost from './AllPlayHost.jsx'
 import { BonusTV } from './Bonus.jsx'
 import BoardView from './BoardView.jsx'
+import DrawingHost from './Drawing.jsx'
 import BuzzList from './BuzzList.jsx'
 import SpotDiffImages from './SpotDiffImages.jsx'
 import TeamSidebar from './TeamSidebar.jsx'
@@ -62,7 +63,9 @@ export default function HostScreen({ code }) {
     return byId
   }, [board])
   const question = room?.current_question_id ? questions.get(room.current_question_id) : null
-  const isAllPlay = room?.phase !== 'board' && question?.kind === 'allplay'
+  // All-play and drawing questions: every team at once, with their own views and keys.
+  const isAllPlay = room?.phase !== 'board' && ['allplay', 'drawing'].includes(question?.kind)
+  const EveryoneView = question?.kind === 'drawing' ? DrawingHost : AllPlayHost
 
   // When time runs out the alarm plays and the team stays on the clock until
   // the host picks Correct, Wrong or Next team.
@@ -238,7 +241,7 @@ export default function HostScreen({ code }) {
             )}
           </>
         ) : isAllPlay ? (
-          <AllPlayHost
+          <EveryoneView
             key={room.buzz_round}
             question={question}
             state={state}

@@ -1,7 +1,7 @@
 // Placeholder board for testing until the game editor exists (step 6).
 // Questions are [prompt, answer] for buzz-in questions, or objects for
-// all-play and spot-the-difference ones (kept in sync with migrations 006 and
-// 008, which update older copies).
+// all-play, spot-the-difference and drawing ones (kept in sync with
+// migrations 006, 008 and 012, which update older copies).
 export const sampleBoard = {
   title: 'Sample board',
   // Bonus game decks (kept in sync with migration 010).
@@ -51,10 +51,12 @@ export const sampleBoard = {
           "According to Buddy in 'Elf', what are the four main food groups?",
           'Candy, candy canes, candy corns and syrup',
         ],
-        [
-          "In 'Die Hard', what is the name of the building where most of the action happens?",
-          'Nakatomi Plaza',
-        ],
+        {
+          kind: 'drawing',
+          prompt: 'Draw Santa on summer vacation',
+          answer: 'Judged by the AI',
+          allplay: { seconds: 180 },
+        },
       ],
     },
     {

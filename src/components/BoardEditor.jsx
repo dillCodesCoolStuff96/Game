@@ -8,6 +8,7 @@ import WheelEditor from './WheelEditor.jsx'
 
 const typeTag = (q) => {
   if (q.kind === 'allplay') return 'All play'
+  if (q.kind === 'drawing') return 'AI drawing'
   if (q.spotdiff) return 'Spot diff'
   return null
 }
@@ -90,6 +91,8 @@ function QuestionForm({ question, category, onDone }) {
   const [prompt, setPrompt] = useState(question.prompt)
   const [answer, setAnswer] = useState(question.answer)
   const [spotdiff, setSpotdiff] = useState(question.spotdiff)
+  const [drawing, setDrawing] = useState(question.kind === 'drawing')
+  const [drawSeconds, setDrawSeconds] = useState(question.allplay?.seconds ?? 180)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -123,14 +126,25 @@ function QuestionForm({ question, category, onDone }) {
 
   async function handleSave(event) {
     event.preventDefault()
-    if (spotdiff && !(spotdiff.left && spotdiff.right)) {
+    if (!drawing && spotdiff && !(spotdiff.left && spotdiff.right)) {
       setError('Add both pictures, or switch back to a normal question.')
       return
     }
     setBusy(true)
     setError('')
     try {
-      await updateQuestion(question.id, { prompt, answer, spotdiff })
+      await updateQuestion(
+        question.id,
+        drawing
+          ? {
+              prompt,
+              answer: answer || 'Judged by the AI',
+              kind: 'drawing',
+              allplay: { seconds: drawSeconds },
+              spotdiff: null,
+            }
+          : { prompt, answer, kind: 'buzz', allplay: null, spotdiff },
+      )
       onDone(true)
     } catch (err) {
       setError(err.message)
@@ -149,34 +163,67 @@ function QuestionForm({ question, category, onDone }) {
       <div className="segmented">
         <button
           type="button"
-          className={spotdiff ? '' : 'selected'}
-          onClick={() => setSpotdiff(null)}
+          className={!spotdiff && !drawing ? 'selected' : ''}
+          onClick={() => {
+            setSpotdiff(null)
+            setDrawing(false)
+          }}
         >
           Buzz-in question
         </button>
         <button
           type="button"
-          className={spotdiff ? 'selected' : ''}
-          onClick={() =>
+          className={spotdiff && !drawing ? 'selected' : ''}
+          onClick={() => {
+            setDrawing(false)
             setSpotdiff((current) => current ?? question.spotdiff ?? { left: '', right: '', spots: [] })
-          }
+          }}
         >
           Spot the difference
+        </button>
+        <button
+          type="button"
+          className={drawing ? 'selected' : ''}
+          onClick={() => {
+            setSpotdiff(null)
+            setDrawing(true)
+          }}
+        >
+          AI drawing
         </button>
       </div>
 
       <label className="field">
-        <span>{spotdiff ? 'Text shown above the pictures' : 'Question'}</span>
+        <span>
+          {drawing ? 'What to draw' : spotdiff ? 'Text shown above the pictures' : 'Question'}
+        </span>
         <textarea
           rows={2}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder={spotdiff ? 'Spot the 4 differences!' : ''}
+          placeholder={drawing ? 'Draw Santa on summer vacation' : spotdiff ? 'Spot the 4 differences!' : ''}
           required
         />
       </label>
 
-      {spotdiff && (
+      {drawing && (
+        <label className="field">
+          <span>Drawing time (seconds)</span>
+          <input
+            type="number"
+            min="30"
+            max="600"
+            step="30"
+            value={drawSeconds}
+            onChange={(e) => setDrawSeconds(Number(e.target.value))}
+          />
+          <span className="muted small">
+            Teams photograph their paper drawing; the AI judge scores them and the best wins.
+          </span>
+        </label>
+      )}
+
+      {spotdiff && !drawing && (
         <>
           <div className="editor-uploads">
             {[
@@ -211,10 +258,12 @@ function QuestionForm({ question, category, onDone }) {
         </>
       )}
 
-      <label className="field">
-        <span>{spotdiff ? 'The differences (shown on your admin phone)' : 'Answer'}</span>
-        <textarea rows={2} value={answer} onChange={(e) => setAnswer(e.target.value)} required />
-      </label>
+      {!drawing && (
+        <label className="field">
+          <span>{spotdiff ? 'The differences (shown on your admin phone)' : 'Answer'}</span>
+          <textarea rows={2} value={answer} onChange={(e) => setAnswer(e.target.value)} required />
+        </label>
+      )}
 
       {error && <p className="error">{error}</p>}
 

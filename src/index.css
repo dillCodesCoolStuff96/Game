@@ -1431,3 +1431,116 @@ input[type='file'] {
 .danger-link {
   color: var(--danger);
 }
+
+/* ---------- AI drawing ---------- */
+
+.judge-thinking {
+  font-size: clamp(1.2rem, 2vw, 2rem);
+  font-weight: 800;
+  color: var(--accent);
+  animation: pulse 0.9s ease-in-out infinite alternate;
+}
+
+.drawing-gallery {
+  display: grid;
+  grid-template-columns: repeat(min(var(--count), 4), minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.drawing-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 0;
+  border-top: 6px solid var(--team);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+  animation: pop 0.3s ease-out;
+}
+
+.drawing-card img {
+  width: 100%;
+  max-height: 40vh;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.drawing-team {
+  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  font-weight: 800;
+}
+
+.drawing-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: clamp(0.95rem, 1.3vw, 1.3rem);
+  animation: pop 0.35s ease-out;
+}
+
+.drawing-verdict strong {
+  font-size: 2em;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.drawing-card.winner {
+  box-shadow: 0 0 0 4px var(--accent);
+}
+
+.drawing-crown {
+  position: absolute;
+  top: -22px;
+  right: 10px;
+  font-size: 2.4rem;
+}
+
+/* Phone */
+.drawing-preview {
+  width: 100%;
+  max-height: 40vh;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.photo-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.photo-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.photo-button.busy {
+  opacity: 0.6;
+}
+
+.drawing-phone-verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.drawing-phone-verdict strong {
+  font-size: 3rem;
+  color: var(--accent);
+}

@@ -5,6 +5,7 @@ import { buzz, createTeam, setMyTeam } from '../storage.js'
 import { teamColor } from '../teamColors.js'
 import { useRoom } from '../useRoom.js'
 import AllPlayPhone from './AllPlayPhone.jsx'
+import { DrawingPhone } from './Drawing.jsx'
 import { BonusPhone } from './Bonus.jsx'
 import WheelPhone from './WheelPhone.jsx'
 
@@ -34,7 +35,8 @@ export default function PlayerScreen({ code, userId }) {
   if (state.room.wheel) return <WheelPhone {...props} />
   // All-play questions swap the buzzer for the team's answer sheet.
   if (state.room.allplay && state.room.phase !== 'board') {
-    return <AllPlayPhone key={state.room.buzz_round} {...props} />
+    const Sheet = state.room.allplay.format === 'drawing' ? DrawingPhone : AllPlayPhone
+    return <Sheet key={state.room.buzz_round} {...props} />
   }
   return <Buzzer {...props} />
 }

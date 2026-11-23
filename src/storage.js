@@ -49,7 +49,7 @@ export async function joinRoom(code, name) {
 
 export async function loadRoomState(roomId) {
   const room = unwrap(await supabase.from('rooms').select('*').eq('id', roomId).single())
-  const [teams, players, buzzes, played, answers] = await Promise.all([
+  const [teams, players, buzzes, played, answers, drawings] = await Promise.all([
     supabase.from('teams').select('*').eq('room_id', roomId).order('created_at'),
     supabase.from('players').select('*').eq('room_id', roomId).order('joined_at'),
     supabase
@@ -69,6 +69,15 @@ export async function loadRoomState(roomId) {
           .eq('removed', false)
           .order('id')
       : { data: [] },
+    // Drawing photos for a drawing question (players only get their own team's).
+    room.allplay?.format === 'drawing'
+      ? supabase
+          .from('drawings')
+          .select('*')
+          .eq('room_id', roomId)
+          .eq('round', room.buzz_round)
+          .order('id')
+      : { data: [] },
   ])
   return {
     room,
@@ -77,6 +86,7 @@ export async function loadRoomState(roomId) {
     buzzes: unwrap(buzzes),
     played: new Set(unwrap(played).map((p) => p.question_id)),
     answers: unwrap(answers),
+    drawings: unwrap(drawings),
   }
 }
 
@@ -84,7 +94,7 @@ export async function loadRoomState(roomId) {
 // (re)connect so a phone waking from sleep catches up.
 export function subscribeRoom(roomId, onChange) {
   const channel = supabase.channel(`room-${roomId}`)
-  for (const table of ['teams', 'players', 'buzzes', 'played_questions', 'allplay_answers']) {
+  for (const table of ['teams', 'players', 'buzzes', 'played_questions', 'allplay_answers', 'drawings']) {
     channel.on(
       'postgres_changes',
       { event: '*', schema: 'public', table, filter: `room_id=eq.${roomId}` },
@@ -177,7 +187,7 @@ export async function ensureBoard() {
   )
   const questions = categories.flatMap((category) =>
     sampleBoard.categories[category.position].questions.map((question, i) => {
-      const { prompt, answer, allplay, spotdiff } = Array.isArray(question)
+      const { kind, prompt, answer, allplay, spotdiff } = Array.isArray(question)
         ? { prompt: question[0], answer: question[1] }
         : question
       return {
@@ -185,7 +195,7 @@ export async function ensureBoard() {
         value: (i + 1) * 100,
         prompt,
         answer,
-        kind: allplay ? 'allplay' : 'buzz',
+        kind: kind ?? (allplay ? 'allplay' : 'buzz'),
         allplay: allplay ?? null,
         spotdiff: spotdiff ?? null,
       }
@@ -216,10 +226,21 @@ export async function loadBoard(boardId) {
 // ---------- Playing questions (host) ----------
 
 // Shows a question with the buzzers closed and the last question's buzzes
-// cleared. For all-play questions, players get the format and box labels
-// (never the answers).
+// cleared. For all-play and drawing questions, players get the format and box
+// labels (never the answers).
 export async function showQuestion(room, question) {
-  const allplay = question.kind === 'allplay' && question.allplay
+  let allplay = null
+  if (question.kind === 'allplay' && question.allplay) {
+    allplay = {
+      format: question.allplay.format,
+      prompt: question.prompt,
+      labels:
+        question.allplay.format === 'blanks' ? question.allplay.items.map((item) => item.label) : [],
+      seconds: question.allplay.seconds,
+    }
+  } else if (question.kind === 'drawing') {
+    allplay = { format: 'drawing', prompt: question.prompt, seconds: question.allplay?.seconds ?? 180 }
+  }
   unwrap(
     await supabase
       .from('rooms')
@@ -228,14 +249,7 @@ export async function showQuestion(room, question) {
         current_question_id: question.id,
         buzz_open: false,
         buzz_round: room.buzz_round + 1,
-        allplay: allplay
-          ? {
-              format: allplay.format,
-              prompt: question.prompt,
-              labels: allplay.format === 'blanks' ? allplay.items.map((item) => item.label) : [],
-              seconds: allplay.seconds,
-            }
-          : null,
+        allplay,
         allplay_ends_at: null,
       })
       .eq('id', room.id),
@@ -412,4 +426,46 @@ export async function bonusFinish(roomId) {
 
 export async function closeBonus(roomId) {
   unwrap(await supabase.rpc('close_bonus', { p_room_id: roomId }))
+}
+
+// ---------- Drawing questions ----------
+
+// Shrinks a phone photo to a JPEG at most 1600px across, so uploads are quick.
+async function shrinkPhoto(file) {
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(bitmap.width * scale)
+  canvas.height = Math.round(bitmap.height * scale)
+  canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85))
+}
+
+// Player: upload a photo of the team's drawing and hand it in.
+export async function submitDrawing(roomId, file) {
+  const { data } = await supabase.auth.getSession()
+  const photo = await shrinkPhoto(file)
+  const name = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.jpg`
+  const path = `drawings/${data.session.user.id}/${name}`
+  unwrap(
+    await supabase.storage.from('question-images').upload(path, photo, { contentType: 'image/jpeg' }),
+  )
+  const url = supabase.storage.from('question-images').getPublicUrl(path).data.publicUrl
+  unwrap(await supabase.rpc('submit_drawing', { p_room_id: roomId, p_image_url: url }))
+}
+
+// Host: ask the AI judge (server function) to score the drawings.
+export async function judgeDrawings(roomId) {
+  const { data } = await supabase.auth.getSession()
+  const response = await fetch('/api/judge-drawings', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${data.session.access_token}`,
+    },
+    body: JSON.stringify({ roomId }),
+  })
+  const body = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(body.error ?? 'The AI judge could not be reached')
+  return body.verdicts
 }
