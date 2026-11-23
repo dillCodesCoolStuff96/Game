@@ -19,7 +19,10 @@ the prompt is unrecognisable. Avoid ties unless two drawings really are equal.
 
 For each drawing write 2-3 sentences that will be read out on the TV: what you actually see,
 how well (or badly) it matches the prompt, then a mean, funny roast. Roast the drawing, not
-the people who made it: nothing hateful, crude, sexual, or about anyone's looks or identity.`
+the people who made it: nothing hateful, crude, sexual, or about anyone's looks or identity.
+
+The party is in the United States: write in American English with American references and
+slang (the IRS, not HMRC; "guy", not "bloke").`
 
 const VERDICT_SCHEMA = {
   type: 'object',
