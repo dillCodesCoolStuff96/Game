@@ -48,19 +48,17 @@ export async function joinRoom(code, name) {
   return unwrap(await supabase.rpc('join_room', { p_code: code, p_name: name }))
 }
 
-export async function loadRoomState(roomId) {
-  const room = unwrap(await supabase.from('rooms').select('*').eq('id', roomId).single())
-  const [teams, players, buzzes, played, answers, drawings] = await Promise.all([
-    supabase.from('teams').select('*').eq('room_id', roomId).order('created_at'),
-    supabase.from('players').select('*').eq('room_id', roomId).order('joined_at'),
+// Queries for the question on screen: they depend on the room's round and
+// whether an all-play / drawing question is up.
+function roundQueries(roomId, room) {
+  return [
     supabase
       .from('buzzes')
       .select('*')
       .eq('room_id', roomId)
       .eq('round', room.buzz_round)
       .order('id'),
-    supabase.from('played_questions').select('question_id').eq('room_id', roomId),
-    // All-play answers for the question on screen (players only get their own team's).
+    // All-play answers (players only get their own team's).
     room.allplay
       ? supabase
           .from('allplay_answers')
@@ -70,7 +68,7 @@ export async function loadRoomState(roomId) {
           .eq('removed', false)
           .order('id')
       : { data: [] },
-    // Drawing photos for a drawing question (players only get their own team's).
+    // Drawing photos (players only get their own team's).
     room.allplay?.format === 'drawing'
       ? supabase
           .from('drawings')
@@ -79,7 +77,45 @@ export async function loadRoomState(roomId) {
           .eq('round', room.buzz_round)
           .order('id')
       : { data: [] },
-  ])
+  ]
+}
+
+const sameRound = (a, b) =>
+  a.buzz_round === b.buzz_round &&
+  Boolean(a.allplay) === Boolean(b.allplay) &&
+  a.allplay?.format === b.allplay?.format
+
+// Loads everything about a room. Given the room as last loaded, every query
+// runs at once (one round trip); only if the round changed meanwhile are the
+// round's queries run again.
+export async function loadRoomState(roomId, lastRoom = null) {
+  const roomQuery = supabase.from('rooms').select('*').eq('id', roomId).single()
+  const restQueries = [
+    supabase.from('teams').select('*').eq('room_id', roomId).order('created_at'),
+    supabase.from('players').select('*').eq('room_id', roomId).order('joined_at'),
+    supabase.from('played_questions').select('question_id').eq('room_id', roomId),
+  ]
+
+  let room
+  let rest
+  let round
+  if (lastRoom) {
+    const results = await Promise.all([roomQuery, ...restQueries, ...roundQueries(roomId, lastRoom)])
+    room = unwrap(results[0])
+    rest = results.slice(1, 4)
+    round = sameRound(room, lastRoom)
+      ? results.slice(4)
+      : await Promise.all(roundQueries(roomId, room))
+  } else {
+    room = unwrap(await roomQuery)
+    ;[rest, round] = await Promise.all([
+      Promise.all(restQueries),
+      Promise.all(roundQueries(roomId, room)),
+    ])
+  }
+
+  const [teams, players, played] = rest
+  const [buzzes, answers, drawings] = round
   return {
     room,
     teams: unwrap(teams),
