@@ -240,6 +240,21 @@ export default function HostScreen({ code }) {
               <p className="muted">Loading board…</p>
             )}
           </>
+        ) : isAllPlay && !room.allplay ? (
+          // Opened without its all-play/drawing setup (e.g. by an older version of
+          // the app): reopening the square sets it up properly.
+          <div className="question-view">
+            <p className="question-prompt small">{question.prompt}</p>
+            <p className="muted">This question needs a restart to work properly.</p>
+            <div className="host-controls">
+              <button type="button" className="primary big" onClick={() => actions.pick(question)}>
+                Restart this question
+              </button>
+              <button type="button" className="secondary" onClick={actions.backToBoard}>
+                Back to board (B)
+              </button>
+            </div>
+          </div>
         ) : isAllPlay ? (
           <EveryoneView
             key={room.buzz_round}
