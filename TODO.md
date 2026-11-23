@@ -9,7 +9,7 @@
 - [ ] 4b. Name-that-song questions
 - [x] 5a. Wheel (random or manual trigger, team spins on phone, editable slices)
 - [x] 5b. Bonus game: rapid fire with point trade (decks per category, text or picture items)
-- [ ] Bonus: pick category / difficulty (maybe a second wheel) instead of random
+- [x] Bonus game slice: team picks from a list of bonus games (each rapid-fire deck; add new bonus game kinds to this list)
 - [x] AI-judged drawing questions (paper drawings photographed on phones, judged by Claude)
 - [x] Bonus room wheel slice: 20 hidden tiles, first symbol to 3 wins its prize (rarer = bigger)
 - [ ] 6. Game editor (build boards and questions in the app)

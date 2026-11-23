@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { spinWheel, wheelSteal } from '../storage.js'
+import { chooseBonus, spinWheel, wheelSteal } from '../storage.js'
 import { teamColor } from '../teamColors.js'
 
 // Phone during the wheel: the spinning team gets the SPIN button (and picks a
@@ -68,6 +68,29 @@ export default function WheelPhone({ state, me, refresh }) {
             </button>
           ))}
       </div>
+    )
+  } else if (wheel.status === 'pick' && mine) {
+    body = (
+      <div className="stack wheel-steal">
+        <p className="caption">Bonus game! Pick one:</p>
+        {wheel.options.map((option, i) => (
+          <button
+            key={i}
+            type="button"
+            className="team-choice"
+            disabled={busy}
+            onClick={() => act(() => chooseBonus(room.id, i))}
+          >
+            <strong>{option.name}</strong>
+          </button>
+        ))}
+      </div>
+    )
+  } else if (['bonus', 'pick', 'chosen'].includes(wheel.status)) {
+    body = (
+      <p className="caption">
+        {mine ? 'Bonus game!' : `${spinner?.name} is picking a bonus game…`}
+      </p>
     )
   } else if (wheel.status === 'choose') {
     body = <p className="caption">{spinner?.name} is choosing who to steal from…</p>

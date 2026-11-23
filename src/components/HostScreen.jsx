@@ -360,7 +360,13 @@ export default function HostScreen({ code }) {
         )}
         {(actionError || error) && <p className="error">{actionError || error}</p>}
         {room.wheel && wheelSetup && (
-          <WheelTV room={room} teams={teams} slices={wheelSetup.slices} run={run} />
+          <WheelTV
+            room={room}
+            teams={teams}
+            slices={wheelSetup.slices}
+            decks={bonusDecks}
+            run={run}
+          />
         )}
         {room.bonus && <BonusTV room={room} teams={teams} decks={bonusDecks} run={run} />}
         {room.match3 && <Match3TV room={room} teams={teams} run={run} />}

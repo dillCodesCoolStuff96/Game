@@ -410,9 +410,21 @@ export async function deleteBonusDeck(deckId) {
   unwrap(await supabase.from('bonus_decks').delete().eq('id', deckId))
 }
 
-// Host: offer a bonus game (random deck) to a team.
-export async function startBonus(roomId, teamId) {
-  unwrap(await supabase.rpc('start_bonus', { p_room_id: roomId, p_team_id: teamId }))
+// Host: offer a bonus game to a team (that deck, or a random one).
+export async function startBonus(roomId, teamId, deckId = null) {
+  unwrap(
+    await supabase.rpc('start_bonus', { p_room_id: roomId, p_team_id: teamId, p_deck_id: deckId }),
+  )
+}
+
+// Host: after a bonus slice, list the bonus games for the team to pick from.
+export async function offerBonusChoice(roomId, options) {
+  unwrap(await supabase.rpc('offer_bonus_choice', { p_room_id: roomId, p_options: options }))
+}
+
+// Team (or host): pick one of the listed bonus games.
+export async function chooseBonus(roomId, option) {
+  unwrap(await supabase.rpc('choose_bonus', { p_room_id: roomId, p_option: option }))
 }
 
 // Team (or host): play for it, or keep the points.

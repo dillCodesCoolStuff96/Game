@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { playBuzzer, playDing } from '../sounds.js'
 import {
+  chooseBonus,
   closeWheel,
+  offerBonusChoice,
   resolveWheel,
   spinWheel,
   startBonus,
@@ -76,7 +78,7 @@ function landingRotation(index, count) {
 }
 
 // TV overlay: wheel for the team that's spinning, then the result.
-export function WheelTV({ room, teams, slices, run }) {
+export function WheelTV({ room, teams, slices, decks = [], run }) {
   const wheel = room.wheel
   const team = teams.find((t) => t.id === wheel.team_id)
   const landed = wheel.slice != null ? landingRotation(wheel.slice, slices.length) : 0
@@ -105,14 +107,37 @@ export function WheelTV({ room, teams, slices, run }) {
     if (wheel.status === 'ready') playBuzzer()
   }, [wheel.status])
 
-  const finished = ['done', 'bonus', 'bonus_room'].includes(wheel.status)
-  // After the Bonus slice, continuing offers the team a bonus game.
+  const finished = wheel.status === 'done' || wheel.status === 'bonus_room'
+  // The Bonus room slice goes straight into the room on Continue.
   const finish = () =>
     run(async () => {
-      if (wheel.status === 'bonus') await startBonus(room.id, wheel.team_id)
       if (wheel.status === 'bonus_room') await startMatch3(room.id, wheel.team_id)
       await closeWheel(room.id)
     })
+
+  // The Bonus game slice: put up the list of bonus games for the team to pick
+  // from. Each rapid-fire deck is one entry; new kinds of bonus game get added here.
+  const offered = useRef(false)
+  useEffect(() => {
+    if (wheel.status !== 'bonus' || offered.current) return
+    offered.current = true
+    const options = decks
+      .filter((d) => d.items.length > 0)
+      .map((d) => ({ kind: 'deck', id: d.id, name: `${d.name} — rapid fire` }))
+    run(() => offerBonusChoice(room.id, options))
+  }, [wheel.status, decks, room.id, run])
+
+  // Once picked, start that game and close the wheel.
+  const started = useRef(false)
+  useEffect(() => {
+    if (wheel.status !== 'chosen' || started.current) return
+    started.current = true
+    const option = wheel.options?.[wheel.choice]
+    run(async () => {
+      if (option?.kind === 'deck') await startBonus(room.id, wheel.team_id, option.id)
+      await closeWheel(room.id)
+    })
+  }, [wheel.status, wheel.choice, wheel.options, wheel.team_id, room.id, run])
 
   useEffect(() => {
     function onKey(event) {
@@ -136,6 +161,12 @@ export function WheelTV({ room, teams, slices, run }) {
         {wheel.status === 'ready' && <p>Spin it on your phone!</p>}
         {wheel.status === 'spinning' && <p>Spinning…</p>}
         {(wheel.status === 'choose' || finished) && <p className="wheel-result">{wheel.result}</p>}
+        {['bonus', 'pick', 'chosen'].includes(wheel.status) && (
+          <>
+            <p className="wheel-result">Bonus game!</p>
+            <p>Pick one on your phone</p>
+          </>
+        )}
       </div>
 
       <div className="host-controls">
@@ -157,14 +188,20 @@ export function WheelTV({ room, teams, slices, run }) {
                 Steal from {t.name}
               </button>
             ))}
+        {wheel.status === 'pick' &&
+          wheel.options.map((option, i) => (
+            <button
+              key={i}
+              type="button"
+              className="secondary"
+              onClick={() => run(() => chooseBonus(room.id, i))}
+            >
+              {option.name}
+            </button>
+          ))}
         {finished && (
           <button type="button" className="primary big" onClick={finish}>
-            {wheel.status === 'bonus'
-              ? 'Play the bonus game'
-              : wheel.status === 'bonus_room'
-                ? 'Enter the bonus room'
-                : 'Continue'}{' '}
-            (Enter)
+            {wheel.status === 'bonus_room' ? 'Enter the bonus room' : 'Continue'} (Enter)
           </button>
         )}
         {!finished && (
