@@ -20,5 +20,6 @@
 - [x] Admin screen on the host's phone showing the answer (?admin=CODE)
 - [x] Host can adjust any team's score at any time (on the TV sidebar)
 - [ ] Pick which board to play when starting a game (needs the editor)
+- [ ] Real test of the AI drawing round: 3-5 teams, real separate drawings, check scores spread out and roasts land
 - [ ] All-play: maybe a per-question scoring option (e.g. points per correct answer) if "most correct wins" doesn't fit a question
 - [x] Block guest (anonymous) accounts from creating boards
