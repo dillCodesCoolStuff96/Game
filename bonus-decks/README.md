@@ -18,7 +18,7 @@ them). Each folder is one deck; upload a whole folder at once.
 
 - images/pokemon: 60 Pokémon, about 60% gen 1, 30% gen 2, 10% gen 3
 - images/logos: 101 brand logos (none that spell their name): everyday brands, harder ones (car badges, airlines, apps) and fashion/beauty symbols (Chanel, Fendi, Lacoste, Hermès, Louis Vuitton…)
-- images/celebrities: 43 celebrity photos (from Wikipedia)
+- images/celebrities: 61 celebrity photos (from Wikipedia), mostly B and C list
 - images/got-house-banners: 27 Game of Thrones house banners
 - images/got-nicknames: 47 characters from Game of Thrones, House of the Dragon and A Knight of the Seven Kingdoms, with their real name under the picture; the answer is the nickname (file names are "Nickname (Character)")
 - images/cod-maps: 90 Call of Duty maps from MW2, Black Ops, Black Ops 2, Black Ops 3 and MW3
